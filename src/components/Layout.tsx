@@ -39,16 +39,28 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   Bets
                 </Link>
                 {user?.role === 'admin' && (
-                  <Link
-                    to="/admin"
-                    className={`${
-                      location.pathname === '/admin'
-                        ? 'border-indigo-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    Admin
-                  </Link>
+                  <>
+                    <Link
+                      to="/admin"
+                      className={`${
+                        location.pathname === '/admin'
+                          ? 'border-indigo-500 text-gray-900'
+                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    >
+                      Admin
+                    </Link>
+                    <Link
+                      to="/admin/users"
+                      className={`${
+                        location.pathname === '/admin/users'
+                          ? 'border-indigo-500 text-gray-900'
+                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    >
+                      Users
+                    </Link>
+                  </>
                 )}
               </div>
             </div>

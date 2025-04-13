@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Bets from './pages/Bets';
 import Admin from './pages/Admin';
+import UserAdmin from './pages/UserAdmin';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -59,6 +60,14 @@ function App() {
               element={
                 <AdminRoute>
                   <Admin />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <UserAdmin />
                 </AdminRoute>
               }
             />
