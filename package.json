@@ -2,7 +2,7 @@
   "name": "polydan",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://matthewmcalear.github.io/PolyDan",
+  "homepage": "https://www.poly-dan.com",
   "engines": {
     "node": "18.x",
     "npm": "9.x"
