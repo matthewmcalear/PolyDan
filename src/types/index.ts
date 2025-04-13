@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'member';
+export type UserRole = 'admin' | 'user';
 
 export interface User {
   id: string;
@@ -6,8 +6,10 @@ export interface User {
   name: string;
   role: UserRole;
   points: number;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
+  is_super: boolean;
+  is_anonymous: boolean;
 }
 
 export interface Champion {

@@ -82,8 +82,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id: data.user.id,
               email,
               name,
-              role: 'member',
-              points: 1000, // Starting points
+              role: 'user',
+              points: 0,
+              is_super: false,
+              is_anonymous: false
             },
           ]);
 
