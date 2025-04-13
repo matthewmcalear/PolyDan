@@ -6,10 +6,8 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
-
-// Placeholder components - we'll create these next
-const Bets = () => <div>Bets Page</div>;
-const Admin = () => <div>Admin Page</div>;
+import Bets from './pages/Bets';
+import Admin from './pages/Admin';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
