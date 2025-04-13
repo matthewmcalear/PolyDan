@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+// Ensure we have the full URL with https://
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL?.startsWith('https://')
+  ? process.env.REACT_APP_SUPABASE_URL
+  : `https://${process.env.REACT_APP_SUPABASE_URL}`;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -12,4 +15,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 console.log('Initializing Supabase client with URL:', supabaseUrl);
-export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+
+// Initialize with additional options for better error handling
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'x-application-name': 'polydan'
+    }
+  }
+}); 
