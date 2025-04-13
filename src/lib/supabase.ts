@@ -20,6 +20,15 @@ console.log('Initializing Supabase client with URL:', formattedUrl);
 try {
   const url = new URL(formattedUrl);
   console.log('Supabase hostname:', url.hostname);
+  
+  // Test connection
+  fetch(formattedUrl)
+    .then(response => {
+      console.log('Supabase connection test:', response.status);
+    })
+    .catch(error => {
+      console.error('Supabase connection test failed:', error);
+    });
 } catch (error) {
   console.error('Invalid Supabase URL:', error);
   throw new Error('Invalid Supabase URL format');
