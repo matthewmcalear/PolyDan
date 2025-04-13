@@ -72,6 +72,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (signUpError) {
         console.error('Auth signup error:', signUpError);
+        // Check for rate limiting error
+        if (signUpError.message?.includes('security purposes') || signUpError.message?.includes('after')) {
+          throw new Error('Please wait a moment before trying to sign up again.');
+        }
         throw new Error(signUpError.message);
       }
 
