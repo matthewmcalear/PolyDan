@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { useAuth } from './context/AuthContext';
@@ -12,13 +12,23 @@ import UserAdmin from './pages/UserAdmin';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('PrivateRoute state:', { user, loading });
+  }, [user, loading]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    console.log('No user found, redirecting to login');
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
@@ -26,13 +36,23 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('AdminRoute state:', { user, loading, isAdmin: user?.role === 'admin' });
+  }, [user, loading]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
   }
 
   if (!user || user.role !== 'admin') {
-    return <Navigate to="/" />;
+    console.log('User not authorized for admin route, redirecting to home');
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

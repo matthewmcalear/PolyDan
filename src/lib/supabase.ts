@@ -4,21 +4,34 @@ const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.error('Missing Supabase environment variables');
+  throw new Error('Missing Supabase configuration');
 }
 
-// Ensure URL has https:// prefix
-const formattedUrl = supabaseUrl.startsWith('https://') 
-  ? supabaseUrl 
-  : `https://${supabaseUrl}`;
+// Ensure URL has https:// prefix and remove any trailing slashes
+const formattedUrl = supabaseUrl
+  .replace(/\/+$/, '') // Remove trailing slashes
+  .replace(/^https?:\/\//, '') // Remove existing protocol
+  .replace(/^/, 'https://'); // Add https:// prefix
 
 console.log('Initializing Supabase client with URL:', formattedUrl);
+
+// Test DNS resolution
+try {
+  const url = new URL(formattedUrl);
+  console.log('Supabase hostname:', url.hostname);
+} catch (error) {
+  console.error('Invalid Supabase URL:', error);
+  throw new Error('Invalid Supabase URL format');
+}
 
 export const supabase = createClient(formattedUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'polydan-auth-token',
+    storage: window.localStorage
   },
   global: {
     headers: {
