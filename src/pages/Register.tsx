@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -14,7 +15,12 @@ const Register: React.FC = () => {
     e.preventDefault();
     try {
       await signUp(email, password, name);
-      navigate('/');
+      toast.success('Account created successfully! Welcome to PolyDan!', {
+        duration: 3000,
+      });
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
     } catch (error: any) {
       console.error('Signup error:', error);
       setError(error.message || 'Failed to create account. Please try again.');
