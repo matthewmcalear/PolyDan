@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { Champion, Bet } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -13,11 +13,7 @@ const Bets: React.FC = () => {
   const [selectedChampion, setSelectedChampion] = useState<string>('');
   const [isBettingFor, setIsBettingFor] = useState<boolean>(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // Fetch champions
       const { data: championsData, error: championsError } = await supabase
@@ -45,7 +41,11 @@ const Bets: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const calculateOdds = (champion: Champion, isFor: boolean): number => {
     // Simple odds calculation - can be made more sophisticated
