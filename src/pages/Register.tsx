@@ -15,8 +15,9 @@ const Register: React.FC = () => {
     try {
       await signUp(email, password, name);
       navigate('/');
-    } catch (error) {
-      setError('Failed to create account. Please try again.');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      setError(error.message || 'Failed to create account. Please try again.');
     }
   };
 

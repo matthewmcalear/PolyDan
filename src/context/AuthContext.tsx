@@ -63,27 +63,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error('Auth signup error:', signUpError);
+        throw new Error(signUpError.message);
+      }
 
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert([
-          {
-            id: data.user.id,
-            email,
-            name,
-            role: 'member',
-            points: 1000, // Starting points
-          },
-        ]);
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: data.user.id,
+              email,
+              name,
+              role: 'member',
+              points: 1000, // Starting points
+            },
+          ]);
 
-      if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          throw new Error('Failed to create user profile: ' + profileError.message);
+        }
+      } else {
+        throw new Error('No user data returned from signup');
+      }
+    } catch (error: any) {
+      console.error('Signup process error:', error);
+      throw error;
     }
   };
 
