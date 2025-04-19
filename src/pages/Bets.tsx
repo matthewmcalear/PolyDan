@@ -1,51 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
-import { Champion, Bet } from '../types';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useChampions } from '../hooks/useChampions';
+import { useBets } from '../hooks/useBets';
+import { Champion } from '../types';
+import { supabase } from '../lib/supabase';
 
 const Bets: React.FC = () => {
   const { user } = useAuth();
-  const [champions, setChampions] = useState<Champion[]>([]);
-  const [userBets, setUserBets] = useState<Bet[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { champions, isLoading: championsLoading, error: championsError } = useChampions();
+  const { bets: userBets, placeBet: placeBetMutation, isLoading: betsLoading, error: betsError } = useBets({ userId: user?.id });
+
   const [betAmount, setBetAmount] = useState<number>(0);
   const [selectedChampion, setSelectedChampion] = useState<string>('');
   const [isBettingFor, setIsBettingFor] = useState<boolean>(true);
 
-  const fetchData = useCallback(async () => {
-    try {
-      // Fetch champions
-      const { data: championsData, error: championsError } = await supabase
-        .from('champions')
-        .select('*')
-        .order('name');
-
-      if (championsError) throw championsError;
-      setChampions(championsData || []);
-
-      // Fetch user's bets
-      if (user) {
-        const { data: betsData, error: betsError } = await supabase
-          .from('bets')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (betsError) throw betsError;
-        setUserBets(betsData || []);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setError('Failed to fetch data');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const error = championsError || betsError;
+  const loading = championsLoading || betsLoading;
 
   const calculateOdds = (champion: Champion, isFor: boolean): number => {
     // Simple odds calculation - can be made more sophisticated
@@ -63,37 +33,30 @@ const Bets: React.FC = () => {
     try {
       // First check if user has enough points
       if (user.points < betAmount) {
-        setError('Insufficient points');
+        console.error('Insufficient points');
         return;
       }
 
       const selectedChamp = champions.find(c => c.id === selectedChampion);
       if (!selectedChamp) {
-        setError('Invalid champion selection');
+        console.error('Invalid champion selection');
         return;
       }
 
       const odds = calculateOdds(selectedChamp, isBettingFor);
       if (odds === 0) {
-        setError('Cannot bet on eliminated champions');
+        console.error('Cannot bet on eliminated champions');
         return;
       }
 
       // Create the bet
-      const { error: betError } = await supabase
-        .from('bets')
-        .insert([
-          {
-            user_id: user.id,
-            champion_id: selectedChampion,
-            amount: betAmount,
-            odds: odds,
-            is_for: isBettingFor,
-            is_resolved: false,
-          },
-        ]);
-
-      if (betError) throw betError;
+      await placeBetMutation({
+        user_id: user.id,
+        champion_id: selectedChampion,
+        amount: betAmount,
+        odds: odds,
+        is_for: isBettingFor,
+      });
 
       // Update user's points
       const { error: pointsError } = await supabase
@@ -104,12 +67,12 @@ const Bets: React.FC = () => {
       if (pointsError) throw pointsError;
 
       // Refresh data
-      await fetchData();
+      // await fetchData();
       setBetAmount(0);
       setSelectedChampion('');
     } catch (error) {
       console.error('Error placing bet:', error);
-      setError('Failed to place bet');
+      console.error('Failed to place bet');
     }
   };
 
@@ -125,7 +88,7 @@ const Bets: React.FC = () => {
           
           {error && (
             <div className="mt-2 rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
+              <div className="text-sm text-red-700">{(error as any)?.message ?? error?.toString()}</div>
             </div>
           )}
 

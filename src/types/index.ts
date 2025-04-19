@@ -19,6 +19,8 @@ export interface Champion {
   isWinner: boolean;
   createdAt: Date;
   updatedAt: Date;
+  hasRedemptionChance?: boolean;
+  isRedeemed?: boolean;
 }
 
 export interface Bet {
@@ -65,4 +67,33 @@ export interface SideBetWager {
   resolvedAt?: Date;
   isResolved: boolean;
   payout?: number;
+}
+
+export interface Transaction {
+  id: string;
+  userId: string;
+  amount: number;
+  reason: string;
+  meta?: Record<string, any>;
+  createdAt: Date;
+}
+
+export interface IOU {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  description?: string;
+  createdAt: Date;
+  settledAt?: Date;
+  isSettled: boolean;
+}
+
+export interface RedemptionChallenge {
+  id: string;
+  championId: string;
+  round: number;
+  isWon: boolean;
+  createdAt: Date;
+  resolvedAt?: Date;
 } 
