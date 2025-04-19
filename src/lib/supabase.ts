@@ -11,11 +11,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase configuration');
 }
 
-// Ensure URL has https:// prefix and remove any trailing slashes
-const formattedUrl = supabaseUrl
-  .replace(/\/+$/, '') // Remove trailing slashes
-  .replace(/^https?:\/\//, '') // Remove existing protocol
-  .replace(/^/, 'https://'); // Add https:// prefix
+// Sanitize URL: trim, remove leading '@', ensure single https:// prefix
+let formattedUrl = supabaseUrl.trim();
+if (formattedUrl.startsWith('@')) {
+  formattedUrl = formattedUrl.slice(1);
+}
+
+// Remove protocol if present and trailing slashes
+formattedUrl = formattedUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+
+// Prepend https:// to create final URL
+formattedUrl = `https://${formattedUrl}`;
 
 console.log('Initializing Supabase client with URL:', formattedUrl);
 
