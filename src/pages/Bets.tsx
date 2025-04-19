@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChampions } from '../hooks/useChampions';
 import { useBets } from '../hooks/useBets';
-import { Champion } from '../types';
+import { Champion, Bet } from '../types';
 import { supabase } from '../lib/supabase';
 
 const Bets: React.FC = () => {
@@ -37,7 +37,7 @@ const Bets: React.FC = () => {
         return;
       }
 
-      const selectedChamp = champions.find(c => c.id === selectedChampion);
+      const selectedChamp = champions.find((c: Champion) => c.id === selectedChampion);
       if (!selectedChamp) {
         console.error('Invalid champion selection');
         return;
@@ -106,8 +106,8 @@ const Bets: React.FC = () => {
               >
                 <option value="">Select a champion</option>
                 {champions
-                  .filter(c => !c.isEliminated)
-                  .map(champion => (
+                  .filter((c: Champion) => !c.isEliminated)
+                  .map((champion: Champion) => (
                     <option key={champion.id} value={champion.id}>
                       {champion.name}
                     </option>
@@ -160,7 +160,7 @@ const Bets: React.FC = () => {
             {selectedChampion && betAmount > 0 && (
               <div className="rounded-md bg-gray-50 p-4">
                 <div className="text-sm text-gray-700">
-                  <p>Potential Payout: {(betAmount * (calculateOdds(champions.find(c => c.id === selectedChampion)!, isBettingFor))).toFixed(2)} points</p>
+                  <p>Potential Payout: {(betAmount * (calculateOdds(champions.find((c: Champion) => c.id === selectedChampion)!, isBettingFor))).toFixed(2)} points</p>
                   <p>Current Balance: {user?.points || 0} points</p>
                 </div>
               </div>
@@ -207,9 +207,9 @@ const Bets: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {userBets
-                    .filter(bet => !bet.isResolved)
-                    .map((bet) => {
-                      const champion = champions.find(c => c.id === bet.championId);
+                    .filter((bet: Bet) => !bet.isResolved)
+                    .map((bet: Bet) => {
+                      const champion = champions.find((c: Champion) => c.id === bet.championId);
                       return (
                         <tr key={bet.id}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
