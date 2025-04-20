@@ -15,3 +15,8 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Custom card shortcuts */
+.card {@apply rounded-lg bg-white shadow p-6 transition hover:shadow-lg;}
+.card-title {@apply text-lg font-semibold text-gray-900 mb-2;}
+.card-body {@apply text-sm text-gray-600;}

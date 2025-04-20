@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { useAuth } from './context/AuthContext';
@@ -9,10 +9,10 @@ import Home from './pages/Home';
 import Bets from './pages/Bets';
 import Admin from './pages/Admin';
 import UserAdmin from './pages/UserAdmin';
+import { Leaderboard, SideBets, Rules, Profile, FAQ } from './pages/StaticPages';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('PrivateRoute state:', { user, loading });
@@ -36,7 +36,6 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('AdminRoute state:', { user, loading, isAdmin: user?.role === 'admin' });
@@ -91,6 +90,11 @@ function App() {
                 </AdminRoute>
               }
             />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/side-bets" element={<SideBets />} />
+            <Route path="/rules" element={<Rules />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/faq" element={<FAQ />} />
           </Routes>
         </Layout>
       </AuthProvider>
