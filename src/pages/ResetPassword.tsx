@@ -1,36 +1,69 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-const ResetPassword: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+// Helper components to reduce duplication
+const Input: React.FC<{
+  id: string;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  autoComplete?: string;
+  className?: string;
+}> = ({ id, type, placeholder, value, onChange, required, autoComplete, className = '' }) => (
+  <input
+    id={id}
+    name={id}
+    type={type}
+    required={required}
+    autoComplete={autoComplete}
+    className={`appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${className}`}
+    placeholder={placeholder}
+    value={value}
+    onChange={onChange}
+  />
+);
+
+const Button: React.FC<{
+  type: 'submit' | 'button';
+  disabled?: boolean;
+  onClick?: () => void;
+  children: React.ReactNode;
+  className?: string;
+}> = ({ type, disabled, onClick, children, className = '' }) => (
+  <button
+    type={type}
+    disabled={disabled}
+    onClick={onClick}
+    className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+  >
+    {children}
+  </button>
+);
+
+const ErrorMessage: React.FC<{ message: string }> = ({ message }) => (
+  <div className="rounded-md bg-red-50 p-4">
+    <div className="text-sm text-red-700">{message}</div>
+  </div>
+);
+
+/**
+ * Custom hook to handle the password reset token from URL
+ * @returns Object containing loading state, error state, and session establishment status
+ */
+const useResetToken = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isSessionEstablished, setIsSessionEstablished] = useState(false);
-  const [isProcessingToken, setIsProcessingToken] = useState(false);
-  const isMounted = useRef(true);
-  const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if we have a reset token in the URL
-  const hasResetToken = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  // Handle the reset token when the component mounts
   useEffect(() => {
     const handleResetToken = async () => {
-      if (!hasResetToken || isProcessingToken || !isMounted.current) return;
-
-      setIsProcessingToken(true);
+      let cancelled = false;
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const searchParams = new URLSearchParams(location.search);
       
@@ -38,9 +71,9 @@ const ResetPassword: React.FC = () => {
       const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
       
       if (!accessToken) {
-        if (isMounted.current) {
+        if (!cancelled) {
           setError('Invalid reset link. Please request a new password reset.');
-          setIsProcessingToken(false);
+          setIsLoading(false);
         }
         return;
       }
@@ -59,7 +92,7 @@ const ResetPassword: React.FC = () => {
 
         // Verify the session was established
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && isMounted.current) {
+        if (session && !cancelled) {
           setIsSessionEstablished(true);
           // Clear the URL parameters
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -68,26 +101,40 @@ const ResetPassword: React.FC = () => {
         }
       } catch (err: any) {
         console.error('Error setting session:', err);
-        if (isMounted.current) {
+        if (!cancelled) {
           setError(err.message || 'Failed to process reset link');
         }
       } finally {
-        if (isMounted.current) {
-          setIsProcessingToken(false);
+        if (!cancelled) {
+          setIsLoading(false);
         }
       }
+
+      return () => {
+        cancelled = true;
+      };
     };
 
     handleResetToken();
-  }, [hasResetToken, location.hash, location.search, isProcessingToken]);
+  }, [location.hash, location.search]);
 
-  // Single auth state change listener
+  return { isLoading, error, isSessionEstablished };
+};
+
+/**
+ * Custom hook to handle auth state changes
+ * @returns Object containing session state and error handling
+ */
+const useAuthState = () => {
+  const [isSessionEstablished, setIsSessionEstablished] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
     console.log('Setting up auth state change listener...');
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mounted) return;
+      if (cancelled) return;
       
       console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
       
@@ -99,18 +146,47 @@ const ResetPassword: React.FC = () => {
     });
 
     return () => {
-      mounted = false;
+      cancelled = true;
       console.log('Cleaning up auth state change listener');
       subscription.unsubscribe();
     };
   }, [isSessionEstablished]);
 
+  return { isSessionEstablished, error, setError };
+};
+
+/**
+ * ResetPassword component that handles both forgot password and password reset flows
+ * @returns JSX.Element
+ */
+const ResetPassword: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if we have a reset token in the URL
+  const hasResetToken = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
+  
+  // Use our custom hooks
+  const { isLoading: isTokenLoading, error: tokenError, isSessionEstablished } = useResetToken();
+  const { error: authError } = useAuthState();
+
+  // Combine errors
+  useEffect(() => {
+    setError(tokenError || authError);
+  }, [tokenError, authError]);
+
   const handleForgotPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading || !isMounted.current) return;
+    if (loading) return;
 
+    let cancelled = false;
     setLoading(true);
-    setError('');
+    setError(null);
 
     try {
       console.log('Sending reset password email...');
@@ -120,29 +196,34 @@ const ResetPassword: React.FC = () => {
 
       if (error) throw error;
 
-      if (isMounted.current) {
+      if (!cancelled) {
         toast.success('Password reset instructions sent to your email!');
         setEmail('');
         navigate('/reset-confirmation');
       }
     } catch (error: any) {
       console.error('Error sending reset email:', error);
-      if (isMounted.current) {
+      if (!cancelled) {
         setError(error.message || 'Failed to send reset instructions');
       }
     } finally {
-      if (isMounted.current) {
+      if (!cancelled) {
         setLoading(false);
       }
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [email, loading, navigate]);
 
   const handleResetPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading || !isMounted.current) return;
+    if (loading) return;
 
+    let cancelled = false;
     setLoading(true);
-    setError('');
+    setError(null);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -157,21 +238,39 @@ const ResetPassword: React.FC = () => {
 
       if (error) throw error;
 
-      if (isMounted.current) {
+      if (!cancelled) {
         toast.success('Password updated successfully!');
         navigate('/login');
       }
     } catch (error: any) {
       console.error('Error resetting password:', error);
-      if (isMounted.current) {
+      if (!cancelled) {
         setError(error.message || 'Failed to reset password');
       }
     } finally {
-      if (isMounted.current) {
+      if (!cancelled) {
         setLoading(false);
       }
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [password, confirmPassword, loading, navigate]);
+
+  // Show loading state while processing token
+  if (isTokenLoading) {
+    return (
+      <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+          <p className="text-center text-gray-600">Processing reset link...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show the password reset form if we have a reset token and session is established
   if (hasResetToken && isSessionEstablished) {
@@ -188,54 +287,32 @@ const ResetPassword: React.FC = () => {
           </div>
 
           <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="text-sm text-red-700">{error}</div>
-              </div>
-            )}
+            {error && <ErrorMessage message={error} />}
 
             <div className="rounded-md shadow-sm -space-y-px">
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  New Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="New Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="confirm-password" className="sr-only">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirm-password"
-                  name="confirm-password"
-                  type="password"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="New Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="rounded-t-md"
+              />
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="rounded-b-md"
+              />
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                {loading ? 'Updating...' : 'Reset Password'}
-              </button>
-            </div>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Updating...' : 'Reset Password'}
+            </Button>
           </form>
         </div>
       </div>
@@ -256,38 +333,21 @@ const ResetPassword: React.FC = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleForgotPassword}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
-          )}
+          {error && <ErrorMessage message={error} />}
 
-          <div>
-            <label htmlFor="email" className="sr-only">
-              Email address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+          <Input
+            id="email"
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {loading ? 'Sending...' : 'Send Reset Instructions'}
-            </button>
-          </div>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Sending...' : 'Send Reset Instructions'}
+          </Button>
 
           <div className="text-sm text-center">
             <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -300,4 +360,5 @@ const ResetPassword: React.FC = () => {
   );
 };
 
+export { ResetPassword };
 export default ResetPassword; 
