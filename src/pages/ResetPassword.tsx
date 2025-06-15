@@ -72,6 +72,8 @@ const ResetPassword: React.FC = () => {
         if (session) {
           console.log('Session established, showing reset form');
           setSessionEstablished(true);
+          // Clear the URL parameters to remove the token
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
     });
@@ -80,6 +82,18 @@ const ResetPassword: React.FC = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Check initial session
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && isResetMode) {
+        console.log('Initial session found, showing reset form');
+        setSessionEstablished(true);
+      }
+    };
+    checkSession();
+  }, [isResetMode]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
