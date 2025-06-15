@@ -19,7 +19,17 @@ const useResetToken = () => {
       hasAttemptedSetup.current = true;
 
       try {
-        // For password recovery, we use the access_token directly from URL params
+        // First check if we already have a session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Session already exists, no need to set it up again
+          setIsSessionEstablished(true);
+          setIsProcessingToken(false);
+          return;
+        }
+
+        // If no session exists, try to set it up from URL params
         const params = new URLSearchParams(window.location.search);
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
