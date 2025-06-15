@@ -148,7 +148,7 @@ const ResetPassword: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // Validate password length
+    // 1. Validate password length before submission
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
       setLoading(false);
@@ -177,7 +177,7 @@ const ResetPassword: React.FC = () => {
         throw error;
       }
 
-      // Show success message
+      // 4. Show success toast
       toast.success('Password updated successfully');
 
       // Reset form state
@@ -185,7 +185,7 @@ const ResetPassword: React.FC = () => {
       setConfirmPassword('');
       setError(null);
 
-      // Show confirmation screen immediately
+      // 3. Show confirmation screen
       setIsResetComplete(true);
 
       // Sign out the user to ensure clean state
@@ -211,6 +211,7 @@ const ResetPassword: React.FC = () => {
     );
   }
 
+  // 3. Success confirmation screen
   if (isResetComplete) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -265,8 +266,12 @@ const ResetPassword: React.FC = () => {
             className="mt-8 space-y-6" 
             onSubmit={handleResetPassword} 
             data-testid="reset-password-form"
-            // Disable form during submission
-            style={{ pointerEvents: loading ? 'none' : 'auto' }}
+            // 2. Visual feedback during submission
+            style={{ 
+              pointerEvents: loading ? 'none' : 'auto',
+              opacity: loading ? 0.7 : 1,
+              transition: 'opacity 0.2s ease-in-out'
+            }}
           >
             <div className="rounded-md shadow-sm space-y-4">
               <FormInput
@@ -320,8 +325,12 @@ const ResetPassword: React.FC = () => {
           className="mt-8 space-y-6" 
           onSubmit={handleForgotPassword} 
           data-testid="forgot-password-form"
-          // Disable form during submission
-          style={{ pointerEvents: loading ? 'none' : 'auto' }}
+          // 2. Visual feedback during submission
+          style={{ 
+            pointerEvents: loading ? 'none' : 'auto',
+            opacity: loading ? 0.7 : 1,
+            transition: 'opacity 0.2s ease-in-out'
+          }}
         >
           <div>
             <FormInput
