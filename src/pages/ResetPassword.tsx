@@ -55,7 +55,7 @@ const ResetPassword: React.FC = () => {
     try {
       console.log('Sending reset password email...');
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password'
+        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password/'
       });
 
       if (error) {
