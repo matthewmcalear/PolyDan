@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -64,11 +64,14 @@ const useResetToken = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSessionEstablished, setIsSessionEstablished] = useState(false);
   const location = useLocation();
+  const hasAttemptedSetup = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
-
     const handleResetToken = async () => {
+      // Prevent multiple attempts
+      if (hasAttemptedSetup.current) return;
+      hasAttemptedSetup.current = true;
+
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const searchParams = new URLSearchParams(location.search);
       
@@ -76,18 +79,13 @@ const useResetToken = () => {
       const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
       
       if (!accessToken) {
-        if (!cancelled) {
-          setError('Invalid reset link. Please request a new password reset.');
-          setIsLoading(false);
-        }
+        setError('Invalid reset link. Please request a new password reset.');
+        setIsLoading(false);
         return;
       }
 
       try {
-        // First, sign out any existing session
-        await supabase.auth.signOut();
-
-        // Then set up the new session
+        // Set up the session directly without signing out first
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken || '',
@@ -97,7 +95,7 @@ const useResetToken = () => {
 
         // Verify the session was established
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && !cancelled) {
+        if (session) {
           setIsSessionEstablished(true);
           // Clear the URL parameters
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -106,21 +104,13 @@ const useResetToken = () => {
         }
       } catch (err: any) {
         console.error('Error setting session:', err);
-        if (!cancelled) {
-          setError(err.message || 'Failed to process reset link');
-        }
+        setError(err.message || 'Failed to process reset link');
       } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
     handleResetToken();
-
-    return () => {
-      cancelled = true;
-    };
   }, [location.hash, location.search]);
 
   return { isLoading, error, isSessionEstablished };
@@ -172,6 +162,7 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const isSubmitting = useRef(false);
 
   // Check if we have a reset token in the URL
   const hasResetToken = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
@@ -187,9 +178,10 @@ const ResetPassword: React.FC = () => {
 
   const handleForgotPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
-
-    let cancelled = false;
+    
+    // Prevent multiple submissions
+    if (loading || isSubmitting.current) return;
+    isSubmitting.current = true;
     setLoading(true);
     setError(null);
 
@@ -201,38 +193,31 @@ const ResetPassword: React.FC = () => {
 
       if (error) throw error;
 
-      if (!cancelled) {
-        toast.success('Password reset instructions sent to your email!');
-        setEmail('');
-        navigate('/reset-confirmation');
-      }
+      toast.success('Password reset instructions sent to your email!');
+      setEmail('');
+      navigate('/reset-confirmation');
     } catch (error: any) {
       console.error('Error sending reset email:', error);
-      if (!cancelled) {
-        setError(error.message || 'Failed to send reset instructions');
-      }
+      setError(error.message || 'Failed to send reset instructions');
     } finally {
-      if (!cancelled) {
-        setLoading(false);
-      }
+      setLoading(false);
+      isSubmitting.current = false;
     }
-
-    return () => {
-      cancelled = true;
-    };
   }, [email, loading, navigate]);
 
   const handleResetPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
-
-    let cancelled = false;
+    
+    // Prevent multiple submissions
+    if (loading || isSubmitting.current) return;
+    isSubmitting.current = true;
     setLoading(true);
     setError(null);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
+      isSubmitting.current = false;
       return;
     }
 
@@ -243,24 +228,15 @@ const ResetPassword: React.FC = () => {
 
       if (error) throw error;
 
-      if (!cancelled) {
-        toast.success('Password updated successfully!');
-        navigate('/login');
-      }
+      toast.success('Password updated successfully!');
+      navigate('/login');
     } catch (error: any) {
       console.error('Error resetting password:', error);
-      if (!cancelled) {
-        setError(error.message || 'Failed to reset password');
-      }
+      setError(error.message || 'Failed to reset password');
     } finally {
-      if (!cancelled) {
-        setLoading(false);
-      }
+      setLoading(false);
+      isSubmitting.current = false;
     }
-
-    return () => {
-      cancelled = true;
-    };
   }, [password, confirmPassword, loading, navigate]);
 
   // Show loading state while processing token
