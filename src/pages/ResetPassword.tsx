@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -9,6 +9,8 @@ const ResetPassword: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isSessionEstablished, setIsSessionEstablished] = useState(false);
+  const [isProcessingToken, setIsProcessingToken] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,8 +20,9 @@ const ResetPassword: React.FC = () => {
   // Handle the reset token when the component mounts
   useEffect(() => {
     const handleResetToken = async () => {
-      if (!hasResetToken) return;
+      if (!hasResetToken || isProcessingToken) return;
 
+      setIsProcessingToken(true);
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const searchParams = new URLSearchParams(location.search);
       
@@ -28,30 +31,63 @@ const ResetPassword: React.FC = () => {
       
       if (!accessToken) {
         setError('Invalid reset link. Please request a new password reset.');
+        setIsProcessingToken(false);
         return;
       }
 
       try {
-        const { error } = await supabase.auth.setSession({
+        // First, sign out any existing session
+        await supabase.auth.signOut();
+
+        // Then set up the new session
+        const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken || '',
         });
 
         if (error) throw error;
 
-        // Clear the URL parameters
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Verify the session was established
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsSessionEstablished(true);
+          // Clear the URL parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          throw new Error('Failed to establish session');
+        }
       } catch (err: any) {
         console.error('Error setting session:', err);
         setError(err.message || 'Failed to process reset link');
+      } finally {
+        setIsProcessingToken(false);
       }
     };
 
     handleResetToken();
-  }, [hasResetToken, location.hash, location.search]);
+  }, [hasResetToken, location.hash, location.search, isProcessingToken]);
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  // Listen for auth state changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
+      
+      if (event === 'SIGNED_IN' && session && !isSessionEstablished) {
+        setIsSessionEstablished(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsSessionEstablished(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [isSessionEstablished]);
+
+  const handleForgotPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent multiple submissions
+
     setLoading(true);
     setError('');
 
@@ -71,7 +107,7 @@ const ResetPassword: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, loading, navigate]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,8 +137,8 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  // Show the password reset form if we have a reset token
-  if (hasResetToken) {
+  // Show the password reset form if we have a reset token and session is established
+  if (hasResetToken && isSessionEstablished) {
     return (
       <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
