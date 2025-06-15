@@ -16,6 +16,9 @@ const ResetPassword: React.FC = () => {
   // Check if we're in reset mode (has access token) or forgot password mode
   const isResetMode = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
 
+  // Store the reset mode state
+  const [isInResetMode, setIsInResetMode] = useState(isResetMode);
+
   useEffect(() => {
     const handleResetToken = async () => {
       if (isResetMode) {
@@ -47,6 +50,7 @@ const ResetPassword: React.FC = () => {
 
             console.log('Session set successfully:', data);
             setSessionEstablished(true);
+            setIsInResetMode(true);
             
             // Clear the URL parameters to remove the token
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -74,6 +78,7 @@ const ResetPassword: React.FC = () => {
         if (session) {
           console.log('Session established through auth state change, showing reset form');
           setSessionEstablished(true);
+          setIsInResetMode(true);
           // Clear the URL parameters to remove the token
           window.history.replaceState({}, document.title, window.location.pathname);
         }
@@ -102,6 +107,7 @@ const ResetPassword: React.FC = () => {
       if (session && isResetMode) {
         console.log('Initial session found in reset mode, showing reset form');
         setSessionEstablished(true);
+        setIsInResetMode(true);
         // Clear the URL parameters to remove the token
         window.history.replaceState({}, document.title, window.location.pathname);
       }
@@ -171,7 +177,7 @@ const ResetPassword: React.FC = () => {
   };
 
   // If we're in reset mode and the session is established, show the password reset form
-  if (isResetMode && sessionEstablished) {
+  if (isInResetMode && sessionEstablished) {
     console.log('Rendering password reset form');
     return (
       <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
