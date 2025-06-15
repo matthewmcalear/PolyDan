@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
+import { FormInput } from '../components/common/FormInput';
+import { ErrorMessage } from '../components/common/ErrorMessage';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 // Custom hook to handle reset token and session setup
 const useResetToken = () => {
@@ -54,38 +57,6 @@ const useResetToken = () => {
 
   return { isSessionEstablished, isProcessingToken };
 };
-
-// Helper component for form inputs
-const FormInput: React.FC<{
-  type: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
-  required?: boolean;
-  'data-testid'?: string;
-}> = ({ type, value, onChange, placeholder, required = true, 'data-testid': testId }) => (
-  <input
-    type={type}
-    value={value}
-    onChange={onChange}
-    placeholder={placeholder}
-    required={required}
-    data-testid={testId}
-    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-  />
-);
-
-// Helper component for error messages
-const ErrorMessage: React.FC<{ message: string; 'data-testid'?: string }> = ({ message, 'data-testid': testId }) => (
-  <p className="text-red-500 text-sm mt-1" data-testid={testId}>{message}</p>
-);
-
-// Helper component for loading spinner
-const LoadingSpinner: React.FC<{ 'data-testid'?: string }> = ({ 'data-testid': testId }) => (
-  <div className="flex justify-center" data-testid={testId}>
-    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-  </div>
-);
 
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -213,7 +184,7 @@ const ResetPassword: React.FC = () => {
                 data-testid="reset-password-button"
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {loading ? <LoadingSpinner data-testid="submit-spinner" /> : 'Reset Password'}
+                {loading ? <LoadingSpinner size="sm" data-testid="submit-spinner" /> : 'Reset Password'}
               </button>
             </div>
           </form>
@@ -253,7 +224,7 @@ const ResetPassword: React.FC = () => {
               data-testid="send-reset-button"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? <LoadingSpinner data-testid="submit-spinner" /> : 'Send Reset Instructions'}
+              {loading ? <LoadingSpinner size="sm" data-testid="submit-spinner" /> : 'Send Reset Instructions'}
             </button>
           </div>
 
