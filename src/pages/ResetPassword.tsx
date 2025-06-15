@@ -13,43 +13,31 @@ const ResetPassword: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // If we're on localhost but have a token, redirect to the production URL
-    if (window.location.hostname === 'localhost' && location.search.includes('type=recovery')) {
-      const searchParams = new URLSearchParams(location.search);
-      const token = searchParams.get('token');
-      if (token) {
-        const newUrl = `https://polydan-1f195a22e2e0.herokuapp.com/reset-password?${location.search}`;
-        window.location.href = newUrl;
-        return;
-      }
+    // Check for verification token in the URL
+    const searchParams = new URLSearchParams(location.search);
+    const token = searchParams.get('token');
+    const type = searchParams.get('type');
+
+    if (token && type === 'recovery') {
+      // Set the session with the verification token
+      supabase.auth.verifyOtp({
+        token_hash: token,
+        type: 'recovery'
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Error verifying token:', error);
+          setError('Invalid or expired reset link. Please try again.');
+          navigate('/reset-password');
+        } else {
+          // Token is valid, show the password reset form
+          setLoading(false);
+        }
+      });
     }
-  }, [location.search]);
+  }, [location.search, navigate]);
 
   // Check if we're in reset mode (has access token) or forgot password mode
   const isResetMode = location.hash.includes('access_token') || location.search.includes('type=recovery');
-
-  useEffect(() => {
-    // If we're in reset mode, extract the access token from the URL
-    if (isResetMode) {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const searchParams = new URLSearchParams(location.search);
-      const accessToken = hashParams.get('access_token') || searchParams.get('token');
-      
-      if (accessToken) {
-        // Set the session with the access token
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: hashParams.get('refresh_token') || '',
-        }).then(({ error }) => {
-          if (error) {
-            console.error('Error setting session:', error);
-            setError('Invalid or expired reset link. Please try again.');
-            navigate('/reset-password');
-          }
-        });
-      }
-    }
-  }, [isResetMode, location.hash, location.search, navigate]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
