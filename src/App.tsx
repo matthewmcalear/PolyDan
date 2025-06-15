@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
 import Home from './pages/Home';
 import Bets from './pages/Bets';
 import Admin from './pages/Admin';
@@ -66,6 +67,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/bets"
               element={

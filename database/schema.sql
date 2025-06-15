@@ -1,6 +1,12 @@
 -- Core schema for PolyDan v2.0
 -- Run this inside Supabase or Heroku Postgres
 
+-- Drop existing triggers if they exist
+DROP TRIGGER IF EXISTS trg_update_timestamp ON users;
+DROP TRIGGER IF EXISTS trg_update_timestamp_champions ON champions;
+DROP TRIGGER IF EXISTS trg_update_timestamp_bets ON bets;
+DROP TRIGGER IF EXISTS trg_update_timestamp_side_bets ON side_bets;
+
 -- USERS ---------------------------------------------------------
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
