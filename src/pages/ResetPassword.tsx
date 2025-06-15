@@ -33,13 +33,6 @@ const ResetPassword: React.FC = () => {
         if (accessToken) {
           console.log('Found access token, attempting to set session...');
           try {
-            // First, try to get the current session
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            
-            if (sessionError) {
-              console.error('Error getting current session:', sessionError);
-            }
-
             // Set the session with the token
             const { data, error } = await supabase.auth.setSession({
               access_token: accessToken,
@@ -49,37 +42,17 @@ const ResetPassword: React.FC = () => {
             if (error) {
               console.error('Error setting session:', error);
               setError(`Session error: ${error.message}`);
-              navigate('/reset-password');
               return;
             }
 
             console.log('Session set successfully:', data);
-
-            // Verify the session was set correctly
-            const { data: { session: newSession }, error: verifyError } = await supabase.auth.getSession();
-            
-            if (verifyError) {
-              console.error('Error verifying session:', verifyError);
-              setError('Failed to verify session. Please try again.');
-              navigate('/reset-password');
-              return;
-            }
-
-            if (!newSession) {
-              console.error('No session found after setting');
-              setError('Session not established. Please try again.');
-              navigate('/reset-password');
-              return;
-            }
-
-            console.log('Session verified:', newSession);
             setSessionEstablished(true);
+            
             // Clear the URL parameters to remove the token
             window.history.replaceState({}, document.title, window.location.pathname);
           } catch (err) {
             console.error('Unexpected error during session handling:', err);
             setError('An unexpected error occurred. Please try again.');
-            navigate('/reset-password');
           }
         } else {
           console.log('No access token found in URL');
@@ -89,14 +62,17 @@ const ResetPassword: React.FC = () => {
     };
 
     handleResetToken();
-  }, [isResetMode, location.hash, location.search, navigate]);
+  }, [isResetMode, location.hash, location.search]);
 
   // Listen for auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session);
-      if (event === 'PASSWORD_RECOVERY' && session) {
-        setSessionEstablished(true);
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+        if (session) {
+          console.log('Session established, showing reset form');
+          setSessionEstablished(true);
+        }
       }
     });
 
@@ -161,6 +137,7 @@ const ResetPassword: React.FC = () => {
     } catch (error: any) {
       console.error('Error resetting password:', error);
       setError(error.message || 'Failed to reset password');
+    } finally {
       setLoading(false);
     }
   };
