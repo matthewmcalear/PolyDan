@@ -18,6 +18,10 @@ const ResetPassword: React.FC = () => {
   useEffect(() => {
     // If we're in reset mode, handle the token
     if (isResetMode) {
+      console.log('Reset mode detected, checking URL parameters...');
+      console.log('Hash:', location.hash);
+      console.log('Search:', location.search);
+
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const searchParams = new URLSearchParams(location.search);
       
@@ -26,31 +30,18 @@ const ResetPassword: React.FC = () => {
       const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
       
       if (accessToken) {
-        console.log('Found access token, verifying...');
-        // First verify the OTP
-        supabase.auth.verifyOtp({
-          token_hash: accessToken,
-          type: 'recovery'
+        console.log('Found access token, attempting to set session...');
+        // Set the session with the token
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
         }).then(({ data, error }) => {
           if (error) {
-            console.error('Error verifying OTP:', error);
-            setError('Invalid or expired reset link. Please try again.');
+            console.error('Error setting session:', error);
+            setError(`Session error: ${error.message}`);
             navigate('/reset-password');
           } else {
-            console.log('OTP verified successfully:', data);
-            // Then set the session
-            supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || '',
-            }).then(({ data: sessionData, error: sessionError }) => {
-              if (sessionError) {
-                console.error('Error setting session:', sessionError);
-                setError('Invalid or expired reset link. Please try again.');
-                navigate('/reset-password');
-              } else {
-                console.log('Session set successfully:', sessionData);
-              }
-            });
+            console.log('Session set successfully:', data);
           }
         });
       } else {
@@ -68,7 +59,7 @@ const ResetPassword: React.FC = () => {
     try {
       console.log('Sending reset password email...');
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password/'
+        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password'
       });
 
       if (error) {
