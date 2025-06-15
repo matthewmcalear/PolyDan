@@ -26,17 +26,23 @@ const ResetPassword: React.FC = () => {
       const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
       
       if (accessToken) {
+        console.log('Found access token, setting session...');
         // Set the session with the token
         supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken || '',
-        }).then(({ error }) => {
+        }).then(({ data, error }) => {
           if (error) {
             console.error('Error setting session:', error);
             setError('Invalid or expired reset link. Please try again.');
             navigate('/reset-password');
+          } else {
+            console.log('Session set successfully:', data);
           }
         });
+      } else {
+        console.log('No access token found in URL');
+        setError('Invalid reset link. Please request a new password reset.');
       }
     }
   }, [isResetMode, location.hash, location.search, navigate]);
@@ -47,11 +53,15 @@ const ResetPassword: React.FC = () => {
     setError('');
 
     try {
+      console.log('Sending reset password email...');
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password',
+        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password'
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Reset password error:', error);
+        throw error;
+      }
 
       toast.success('Password reset instructions sent to your email!');
       setEmail('');
