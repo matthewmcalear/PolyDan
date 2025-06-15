@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -13,7 +13,29 @@ const ResetPassword: React.FC = () => {
   const location = useLocation();
 
   // Check if we're in reset mode (has access token) or forgot password mode
-  const isResetMode = new URLSearchParams(location.search).get('type') === 'recovery';
+  const isResetMode = location.hash.includes('access_token');
+
+  useEffect(() => {
+    // If we're in reset mode, extract the access token from the URL
+    if (isResetMode) {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      
+      if (accessToken) {
+        // Set the session with the access token
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: hashParams.get('refresh_token') || '',
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Error setting session:', error);
+            setError('Invalid or expired reset link. Please try again.');
+            navigate('/reset-password');
+          }
+        });
+      }
+    }
+  }, [isResetMode, location.hash, navigate]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +44,7 @@ const ResetPassword: React.FC = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password?type=recovery`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;
@@ -56,6 +78,8 @@ const ResetPassword: React.FC = () => {
       if (error) throw error;
 
       toast.success('Password updated successfully!');
+      // Clear the URL hash to remove the access token
+      window.history.replaceState({}, document.title, window.location.pathname);
       navigate('/login');
     } catch (error: any) {
       console.error('Error resetting password:', error);
