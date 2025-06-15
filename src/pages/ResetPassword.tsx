@@ -66,11 +66,13 @@ const ResetPassword: React.FC = () => {
 
   // Listen for auth state changes
   useEffect(() => {
+    console.log('Setting up auth state change listener...');
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session);
+      console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
+      
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         if (session) {
-          console.log('Session established, showing reset form');
+          console.log('Session established through auth state change, showing reset form');
           setSessionEstablished(true);
           // Clear the URL parameters to remove the token
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -79,6 +81,7 @@ const ResetPassword: React.FC = () => {
     });
 
     return () => {
+      console.log('Cleaning up auth state change listener');
       subscription.unsubscribe();
     };
   }, []);
@@ -86,10 +89,21 @@ const ResetPassword: React.FC = () => {
   // Check initial session
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Checking initial session...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error checking initial session:', error);
+        return;
+      }
+
+      console.log('Initial session check result:', session ? 'Session exists' : 'No session');
+      
       if (session && isResetMode) {
-        console.log('Initial session found, showing reset form');
+        console.log('Initial session found in reset mode, showing reset form');
         setSessionEstablished(true);
+        // Clear the URL parameters to remove the token
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
     checkSession();
@@ -158,6 +172,7 @@ const ResetPassword: React.FC = () => {
 
   // If we're in reset mode and the session is established, show the password reset form
   if (isResetMode && sessionEstablished) {
+    console.log('Rendering password reset form');
     return (
       <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
