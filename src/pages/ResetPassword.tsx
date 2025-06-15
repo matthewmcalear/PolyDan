@@ -43,9 +43,23 @@ const ResetPassword: React.FC = () => {
             navigate('/reset-password');
           } else {
             console.log('Session set successfully:', data);
-            setSessionEstablished(true);
-            // Clear the URL parameters to remove the token
-            window.history.replaceState({}, document.title, window.location.pathname);
+            // Verify the session is valid
+            supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
+              if (sessionError) {
+                console.error('Error verifying session:', sessionError);
+                setError('Invalid session. Please try again.');
+                navigate('/reset-password');
+              } else if (sessionData.session) {
+                console.log('Session verified:', sessionData.session);
+                setSessionEstablished(true);
+                // Clear the URL parameters to remove the token
+                window.history.replaceState({}, document.title, window.location.pathname);
+              } else {
+                console.error('No session found after setting');
+                setError('Session not established. Please try again.');
+                navigate('/reset-password');
+              }
+            });
           }
         });
       } else {
