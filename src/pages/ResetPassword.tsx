@@ -90,6 +90,9 @@ const ResetPassword: React.FC = () => {
     let timeoutId: NodeJS.Timeout;
     
     if (isResetComplete) {
+      // Clear any existing session
+      supabase.auth.signOut();
+      
       timeoutId = setTimeout(() => {
         navigate('/login', { replace: true });
       }, 5000);
@@ -167,8 +170,11 @@ const ResetPassword: React.FC = () => {
       setConfirmPassword('');
       setError(null);
 
-      // Show confirmation screen
+      // Show confirmation screen immediately
       setIsResetComplete(true);
+
+      // Sign out the user to ensure clean state
+      await supabase.auth.signOut();
     } catch (error) {
       console.error('Error updating password:', error);
       setError('Failed to update password. Please try again.');
