@@ -13,19 +13,23 @@ const ResetPassword: React.FC = () => {
   const location = useLocation();
 
   // Check if we're in reset mode (has access token) or forgot password mode
-  const isResetMode = location.hash.includes('type=recovery');
+  const isResetMode = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
 
   useEffect(() => {
     // If we're in reset mode, handle the token
     if (isResetMode) {
       const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+      const searchParams = new URLSearchParams(location.search);
+      
+      // Try to get token from hash first, then from search params
+      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
       
       if (accessToken) {
         // Set the session with the token
         supabase.auth.setSession({
           access_token: accessToken,
-          refresh_token: hashParams.get('refresh_token') || '',
+          refresh_token: refreshToken || '',
         }).then(({ error }) => {
           if (error) {
             console.error('Error setting session:', error);
@@ -35,7 +39,7 @@ const ResetPassword: React.FC = () => {
         });
       }
     }
-  }, [isResetMode, location.hash, navigate]);
+  }, [isResetMode, location.hash, location.search, navigate]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +84,7 @@ const ResetPassword: React.FC = () => {
       if (error) throw error;
 
       toast.success('Password updated successfully!');
-      // Clear the URL hash to remove the token
+      // Clear the URL parameters to remove the token
       window.history.replaceState({}, document.title, window.location.pathname);
       navigate('/login');
     } catch (error: any) {
