@@ -13,13 +13,14 @@ const ResetPassword: React.FC = () => {
   const location = useLocation();
 
   // Check if we're in reset mode (has access token) or forgot password mode
-  const isResetMode = location.hash.includes('access_token');
+  const isResetMode = location.hash.includes('access_token') || location.search.includes('type=recovery');
 
   useEffect(() => {
     // If we're in reset mode, extract the access token from the URL
     if (isResetMode) {
       const hashParams = new URLSearchParams(location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+      const searchParams = new URLSearchParams(location.search);
+      const accessToken = hashParams.get('access_token') || searchParams.get('token');
       
       if (accessToken) {
         // Set the session with the access token
@@ -35,7 +36,7 @@ const ResetPassword: React.FC = () => {
         });
       }
     }
-  }, [isResetMode, location.hash, navigate]);
+  }, [isResetMode, location.hash, location.search, navigate]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,8 +44,13 @@ const ResetPassword: React.FC = () => {
     setError('');
 
     try {
+      // Use the current origin for development and production URLs
+      const redirectTo = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:3000/reset-password'
+        : 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password';
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password',
+        redirectTo,
       });
 
       if (error) throw error;
@@ -80,7 +86,7 @@ const ResetPassword: React.FC = () => {
       if (error) throw error;
 
       toast.success('Password updated successfully!');
-      // Clear the URL hash to remove the access token
+      // Clear the URL hash and search params to remove the token
       window.history.replaceState({}, document.title, window.location.pathname);
       navigate('/login');
     } catch (error: any) {
