@@ -19,9 +19,10 @@ const ResetPassword: React.FC = () => {
   // Store the reset mode state
   const [isInResetMode, setIsInResetMode] = useState(isResetMode);
 
+  // Handle reset token and session setup
   useEffect(() => {
     const handleResetToken = async () => {
-      if (isResetMode) {
+      if (isResetMode && !sessionEstablished) {
         console.log('Reset mode detected, checking URL parameters...');
         console.log('Hash:', location.hash);
         console.log('Search:', location.search);
@@ -66,7 +67,7 @@ const ResetPassword: React.FC = () => {
     };
 
     handleResetToken();
-  }, [isResetMode, location.hash, location.search]);
+  }, [isResetMode, location.hash, location.search, sessionEstablished]);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -74,14 +75,12 @@ const ResetPassword: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
       
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        if (session) {
-          console.log('Session established through auth state change, showing reset form');
-          setSessionEstablished(true);
-          setIsInResetMode(true);
-          // Clear the URL parameters to remove the token
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
+      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session && !sessionEstablished) {
+        console.log('Session established through auth state change, showing reset form');
+        setSessionEstablished(true);
+        setIsInResetMode(true);
+        // Clear the URL parameters to remove the token
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     });
 
@@ -89,31 +88,33 @@ const ResetPassword: React.FC = () => {
       console.log('Cleaning up auth state change listener');
       subscription.unsubscribe();
     };
-  }, []);
+  }, [sessionEstablished]);
 
   // Check initial session
   useEffect(() => {
     const checkSession = async () => {
-      console.log('Checking initial session...');
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error checking initial session:', error);
-        return;
-      }
+      if (!sessionEstablished) {
+        console.log('Checking initial session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error checking initial session:', error);
+          return;
+        }
 
-      console.log('Initial session check result:', session ? 'Session exists' : 'No session');
-      
-      if (session && isResetMode) {
-        console.log('Initial session found in reset mode, showing reset form');
-        setSessionEstablished(true);
-        setIsInResetMode(true);
-        // Clear the URL parameters to remove the token
-        window.history.replaceState({}, document.title, window.location.pathname);
+        console.log('Initial session check result:', session ? 'Session exists' : 'No session');
+        
+        if (session && isResetMode) {
+          console.log('Initial session found in reset mode, showing reset form');
+          setSessionEstablished(true);
+          setIsInResetMode(true);
+          // Clear the URL parameters to remove the token
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       }
     };
     checkSession();
-  }, [isResetMode]);
+  }, [isResetMode, sessionEstablished]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
