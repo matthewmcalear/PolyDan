@@ -77,12 +77,17 @@ const ResetPassword: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      console.log('Attempting to update password...');
+      const { data, error } = await supabase.auth.updateUser({
         password: password
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
+      console.log('Password update successful:', data);
       toast.success('Password updated successfully!');
       // Clear the URL parameters to remove the token
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -90,7 +95,6 @@ const ResetPassword: React.FC = () => {
     } catch (error: any) {
       console.error('Error resetting password:', error);
       setError(error.message || 'Failed to reset password');
-    } finally {
       setLoading(false);
     }
   };
