@@ -148,6 +148,15 @@ const ResetPassword: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    // Validate password length
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      isSubmitting.current = false;
+      return;
+    }
+
+    // Validate password match
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
@@ -160,7 +169,13 @@ const ResetPassword: React.FC = () => {
         password: password
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific error cases
+        if (error.message.includes('weak password')) {
+          throw new Error('Password must be at least 6 characters long');
+        }
+        throw error;
+      }
 
       // Show success message
       toast.success('Password updated successfully');
@@ -177,7 +192,7 @@ const ResetPassword: React.FC = () => {
       await supabase.auth.signOut();
     } catch (error) {
       console.error('Error updating password:', error);
-      setError('Failed to update password. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to update password. Please try again.');
     } finally {
       // Always reset loading state
       setLoading(false);
