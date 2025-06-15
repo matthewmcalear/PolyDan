@@ -26,18 +26,31 @@ const ResetPassword: React.FC = () => {
       const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
       
       if (accessToken) {
-        console.log('Found access token, setting session...');
-        // Set the session with the token
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
+        console.log('Found access token, verifying...');
+        // First verify the OTP
+        supabase.auth.verifyOtp({
+          token_hash: accessToken,
+          type: 'recovery'
         }).then(({ data, error }) => {
           if (error) {
-            console.error('Error setting session:', error);
+            console.error('Error verifying OTP:', error);
             setError('Invalid or expired reset link. Please try again.');
             navigate('/reset-password');
           } else {
-            console.log('Session set successfully:', data);
+            console.log('OTP verified successfully:', data);
+            // Then set the session
+            supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            }).then(({ data: sessionData, error: sessionError }) => {
+              if (sessionError) {
+                console.error('Error setting session:', sessionError);
+                setError('Invalid or expired reset link. Please try again.');
+                navigate('/reset-password');
+              } else {
+                console.log('Session set successfully:', sessionData);
+              }
+            });
           }
         });
       } else {
