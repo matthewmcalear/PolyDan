@@ -17,56 +17,78 @@ const ResetPassword: React.FC = () => {
   const isResetMode = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
 
   useEffect(() => {
-    // If we're in reset mode, handle the token
-    if (isResetMode) {
-      console.log('Reset mode detected, checking URL parameters...');
-      console.log('Hash:', location.hash);
-      console.log('Search:', location.search);
+    const handleResetToken = async () => {
+      if (isResetMode) {
+        console.log('Reset mode detected, checking URL parameters...');
+        console.log('Hash:', location.hash);
+        console.log('Search:', location.search);
 
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const searchParams = new URLSearchParams(location.search);
-      
-      // Try to get token from hash first, then from search params
-      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
-      
-      if (accessToken) {
-        console.log('Found access token, attempting to set session...');
-        // Set the session with the token
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
-        }).then(({ data, error }) => {
-          if (error) {
-            console.error('Error setting session:', error);
-            setError(`Session error: ${error.message}`);
-            navigate('/reset-password');
-          } else {
-            console.log('Session set successfully:', data);
-            // Verify the session is valid
-            supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
-              if (sessionError) {
-                console.error('Error verifying session:', sessionError);
-                setError('Invalid session. Please try again.');
-                navigate('/reset-password');
-              } else if (sessionData.session) {
-                console.log('Session verified:', sessionData.session);
-                setSessionEstablished(true);
-                // Clear the URL parameters to remove the token
-                window.history.replaceState({}, document.title, window.location.pathname);
-              } else {
-                console.error('No session found after setting');
-                setError('Session not established. Please try again.');
-                navigate('/reset-password');
-              }
+        const hashParams = new URLSearchParams(location.hash.substring(1));
+        const searchParams = new URLSearchParams(location.search);
+        
+        // Try to get token from hash first, then from search params
+        const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+        
+        if (accessToken) {
+          console.log('Found access token, attempting to set session...');
+          try {
+            // First, try to get the current session
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError) {
+              console.error('Error getting current session:', sessionError);
+            }
+
+            // Set the session with the token
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
             });
+
+            if (error) {
+              console.error('Error setting session:', error);
+              setError(`Session error: ${error.message}`);
+              navigate('/reset-password');
+              return;
+            }
+
+            console.log('Session set successfully:', data);
+
+            // Verify the session was set correctly
+            const { data: { session: newSession }, error: verifyError } = await supabase.auth.getSession();
+            
+            if (verifyError) {
+              console.error('Error verifying session:', verifyError);
+              setError('Failed to verify session. Please try again.');
+              navigate('/reset-password');
+              return;
+            }
+
+            if (!newSession) {
+              console.error('No session found after setting');
+              setError('Session not established. Please try again.');
+              navigate('/reset-password');
+              return;
+            }
+
+            console.log('Session verified:', newSession);
+            setSessionEstablished(true);
+            // Clear the URL parameters to remove the token
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (err) {
+            console.error('Unexpected error during session handling:', err);
+            setError('An unexpected error occurred. Please try again.');
+            navigate('/reset-password');
           }
-        });
-      } else {
-        console.log('No access token found in URL');
-        setError('Invalid reset link. Please request a new password reset.');
+        } else {
+          console.log('No access token found in URL');
+          setError('Invalid reset link. Please request a new password reset.');
+        }
       }
-    }
+    };
+
+    handleResetToken();
   }, [isResetMode, location.hash, location.search, navigate]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
