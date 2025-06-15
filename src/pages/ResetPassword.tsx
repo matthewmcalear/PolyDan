@@ -85,33 +85,6 @@ const ResetPassword: React.FC = () => {
   const isSubmitting = useRef(false);
   const { isSessionEstablished, isProcessingToken } = useResetToken();
 
-  // Auto-redirect after 5 seconds when reset is complete
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    if (isResetComplete) {
-      // Clear any existing session
-      supabase.auth.signOut();
-      
-      timeoutId = setTimeout(() => {
-        navigate('/login', { replace: true });
-      }, 5000);
-    }
-
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [isResetComplete, navigate]);
-
-  // Clear URL parameters after processing
-  useEffect(() => {
-    if (isSessionEstablished) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [isSessionEstablished]);
-
   const handleForgotPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -187,9 +160,6 @@ const ResetPassword: React.FC = () => {
 
       // 3. Show confirmation screen
       setIsResetComplete(true);
-
-      // Sign out the user to ensure clean state
-      await supabase.auth.signOut();
     } catch (error) {
       console.error('Error updating password:', error);
       setError(error instanceof Error ? error.message : 'Failed to update password. Please try again.');
@@ -199,6 +169,40 @@ const ResetPassword: React.FC = () => {
       isSubmitting.current = false;
     }
   }, [password, confirmPassword, loading]);
+
+  // Auto-redirect after 5 seconds when reset is complete
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    if (isResetComplete) {
+      // Sign out the user when showing confirmation screen
+      const signOut = async () => {
+        try {
+          await supabase.auth.signOut();
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      };
+      signOut();
+      
+      timeoutId = setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 5000);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isResetComplete, navigate]);
+
+  // Clear URL parameters after processing
+  useEffect(() => {
+    if (isSessionEstablished) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [isSessionEstablished]);
 
   if (isProcessingToken) {
     return (
@@ -240,7 +244,16 @@ const ResetPassword: React.FC = () => {
             </p>
             <div className="mt-6">
               <button
-                onClick={() => navigate('/login', { replace: true })}
+                onClick={async () => {
+                  try {
+                    await supabase.auth.signOut();
+                    navigate('/login', { replace: true });
+                  } catch (error) {
+                    console.error('Error signing out:', error);
+                    // Still navigate even if sign out fails
+                    navigate('/login', { replace: true });
+                  }
+                }}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 data-testid="go-to-login-button"
               >
