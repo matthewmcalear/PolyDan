@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -11,16 +11,24 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState('');
   const [isSessionEstablished, setIsSessionEstablished] = useState(false);
   const [isProcessingToken, setIsProcessingToken] = useState(false);
+  const isMounted = useRef(true);
   const navigate = useNavigate();
   const location = useLocation();
 
   // Check if we have a reset token in the URL
   const hasResetToken = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   // Handle the reset token when the component mounts
   useEffect(() => {
     const handleResetToken = async () => {
-      if (!hasResetToken || isProcessingToken) return;
+      if (!hasResetToken || isProcessingToken || !isMounted.current) return;
 
       setIsProcessingToken(true);
       const hashParams = new URLSearchParams(location.hash.substring(1));
@@ -30,8 +38,10 @@ const ResetPassword: React.FC = () => {
       const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
       
       if (!accessToken) {
-        setError('Invalid reset link. Please request a new password reset.');
-        setIsProcessingToken(false);
+        if (isMounted.current) {
+          setError('Invalid reset link. Please request a new password reset.');
+          setIsProcessingToken(false);
+        }
         return;
       }
 
@@ -49,7 +59,7 @@ const ResetPassword: React.FC = () => {
 
         // Verify the session was established
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        if (session && isMounted.current) {
           setIsSessionEstablished(true);
           // Clear the URL parameters
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -58,18 +68,27 @@ const ResetPassword: React.FC = () => {
         }
       } catch (err: any) {
         console.error('Error setting session:', err);
-        setError(err.message || 'Failed to process reset link');
+        if (isMounted.current) {
+          setError(err.message || 'Failed to process reset link');
+        }
       } finally {
-        setIsProcessingToken(false);
+        if (isMounted.current) {
+          setIsProcessingToken(false);
+        }
       }
     };
 
     handleResetToken();
   }, [hasResetToken, location.hash, location.search, isProcessingToken]);
 
-  // Listen for auth state changes
+  // Single auth state change listener
   useEffect(() => {
+    let mounted = true;
+    console.log('Setting up auth state change listener...');
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      
       console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
       
       if (event === 'SIGNED_IN' && session && !isSessionEstablished) {
@@ -80,37 +99,48 @@ const ResetPassword: React.FC = () => {
     });
 
     return () => {
+      mounted = false;
+      console.log('Cleaning up auth state change listener');
       subscription.unsubscribe();
     };
   }, [isSessionEstablished]);
 
   const handleForgotPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // Prevent multiple submissions
+    if (loading || !isMounted.current) return;
 
     setLoading(true);
     setError('');
 
     try {
+      console.log('Sending reset password email...');
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password'
       });
 
       if (error) throw error;
 
-      toast.success('Password reset instructions sent to your email!');
-      setEmail('');
-      navigate('/reset-confirmation');
+      if (isMounted.current) {
+        toast.success('Password reset instructions sent to your email!');
+        setEmail('');
+        navigate('/reset-confirmation');
+      }
     } catch (error: any) {
       console.error('Error sending reset email:', error);
-      setError(error.message || 'Failed to send reset instructions');
+      if (isMounted.current) {
+        setError(error.message || 'Failed to send reset instructions');
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   }, [email, loading, navigate]);
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleResetPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || !isMounted.current) return;
+
     setLoading(true);
     setError('');
 
@@ -127,15 +157,21 @@ const ResetPassword: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Password updated successfully!');
-      navigate('/login');
+      if (isMounted.current) {
+        toast.success('Password updated successfully!');
+        navigate('/login');
+      }
     } catch (error: any) {
       console.error('Error resetting password:', error);
-      setError(error.message || 'Failed to reset password');
+      if (isMounted.current) {
+        setError(error.message || 'Failed to reset password');
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [password, confirmPassword, loading, navigate]);
 
   // Show the password reset form if we have a reset token and session is established
   if (hasResetToken && isSessionEstablished) {
