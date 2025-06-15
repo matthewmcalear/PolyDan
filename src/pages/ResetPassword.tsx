@@ -11,6 +11,13 @@ const useResetToken = () => {
   const [isSessionEstablished, setIsSessionEstablished] = useState(false);
   const [isProcessingToken, setIsProcessingToken] = useState(true);
   const hasAttemptedSetup = useRef(false);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleResetToken = async () => {
@@ -22,6 +29,8 @@ const useResetToken = () => {
         // First check if we already have a session
         const { data: { session } } = await supabase.auth.getSession();
         
+        if (!isMounted.current) return;
+
         if (session) {
           // Session already exists, no need to set it up again
           setIsSessionEstablished(true);
@@ -40,16 +49,21 @@ const useResetToken = () => {
             refresh_token: refreshToken || '',
           });
           
+          if (!isMounted.current) return;
+          
           if (error) throw error;
           if (data?.session) {
             setIsSessionEstablished(true);
           }
         }
       } catch (error) {
+        if (!isMounted.current) return;
         console.error('Error setting up session:', error);
         toast.error('Failed to set up password reset session. Please try again.');
       } finally {
-        setIsProcessingToken(false);
+        if (isMounted.current) {
+          setIsProcessingToken(false);
+        }
       }
     };
 
@@ -67,8 +81,26 @@ const ResetPassword: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isResetComplete, setIsResetComplete] = useState(false);
   const isSubmitting = useRef(false);
   const { isSessionEstablished, isProcessingToken } = useResetToken();
+
+  // Auto-redirect after 5 seconds when reset is complete
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    if (isResetComplete) {
+      timeoutId = setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 5000);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isResetComplete, navigate]);
 
   // Clear URL parameters after processing
   useEffect(() => {
@@ -127,16 +159,25 @@ const ResetPassword: React.FC = () => {
 
       if (error) throw error;
 
+      // Show success message
       toast.success('Password updated successfully');
-      navigate('/login');
+
+      // Reset form state
+      setPassword('');
+      setConfirmPassword('');
+      setError(null);
+
+      // Show confirmation screen
+      setIsResetComplete(true);
     } catch (error) {
       console.error('Error updating password:', error);
       setError('Failed to update password. Please try again.');
     } finally {
+      // Always reset loading state
       setLoading(false);
       isSubmitting.current = false;
     }
-  }, [password, confirmPassword, loading, navigate]);
+  }, [password, confirmPassword, loading]);
 
   if (isProcessingToken) {
     return (
@@ -144,6 +185,47 @@ const ResetPassword: React.FC = () => {
         <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
           <LoadingSpinner data-testid="loading-spinner" />
           <p className="text-center text-gray-600">Setting up password reset...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isResetComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+              <svg
+                className="h-6 w-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Password Reset Complete
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600" data-testid="reset-success-message">
+              Your password has been successfully updated. You will be redirected to the login page in 5 seconds.
+            </p>
+            <div className="mt-6">
+              <button
+                onClick={() => navigate('/login', { replace: true })}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                data-testid="go-to-login-button"
+              >
+                Go to Login
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -158,7 +240,13 @@ const ResetPassword: React.FC = () => {
               Reset Your Password
             </h2>
           </div>
-          <form className="mt-8 space-y-6" onSubmit={handleResetPassword} data-testid="reset-password-form">
+          <form 
+            className="mt-8 space-y-6" 
+            onSubmit={handleResetPassword} 
+            data-testid="reset-password-form"
+            // Disable form during submission
+            style={{ pointerEvents: loading ? 'none' : 'auto' }}
+          >
             <div className="rounded-md shadow-sm space-y-4">
               <FormInput
                 type="password"
@@ -166,6 +254,7 @@ const ResetPassword: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="New Password"
                 data-testid="new-password-input"
+                disabled={loading}
               />
               <FormInput
                 type="password"
@@ -173,6 +262,7 @@ const ResetPassword: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm New Password"
                 data-testid="confirm-password-input"
+                disabled={loading}
               />
             </div>
 
@@ -205,7 +295,13 @@ const ResetPassword: React.FC = () => {
             Enter your email address and we'll send you instructions to reset your password.
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleForgotPassword} data-testid="forgot-password-form">
+        <form 
+          className="mt-8 space-y-6" 
+          onSubmit={handleForgotPassword} 
+          data-testid="forgot-password-form"
+          // Disable form during submission
+          style={{ pointerEvents: loading ? 'none' : 'auto' }}
+        >
           <div>
             <FormInput
               type="email"
@@ -213,6 +309,7 @@ const ResetPassword: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
               data-testid="email-input"
+              disabled={loading}
             />
           </div>
 
