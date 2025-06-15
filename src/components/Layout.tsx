@@ -6,8 +6,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+    setMobileOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -78,7 +83,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               </div>
             </div>
 
-            {/* Mobile hamburger */}
+            {/* Mobile menu button */}
             <div className="flex sm:hidden">
               <button
                 type="button"
@@ -100,44 +105,117 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
         {/* Mobile menu panel */}
         {mobileOpen && (
-          <div className="sm:hidden px-2 pt-2 pb-3 space-y-1" aria-label="Mobile">
-            {[
-              { to: '/', label: 'Home' },
-              { to: '/leaderboard', label: 'Leaderboard' },
-              { to: '/side-bets', label: 'Side Bets' },
-              { to: '/rules', label: 'Rules' },
-              { to: '/faq', label: 'FAQ' },
-              ...(user ? [{ to: '/bets', label: 'Bets' }] : []),
-            ].map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50"
-              >
-                {label}
-              </Link>
-            ))}
-            {user?.role === 'admin' && (
-              <>
-                <Link to="/admin" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Admin</Link>
-                <Link to="/admin/users" onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Users</Link>
-              </>
+          <div className="sm:hidden" aria-label="Mobile">
+            {/* Mobile user info */}
+            {user && (
+              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100">
+                        <span className="text-sm font-medium leading-none text-indigo-600">
+                          {user.name?.charAt(0).toUpperCase()}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-700">{user.name}</p>
+                      <p className="text-xs text-gray-500">{user.points} points</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile navigation links */}
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {[
+                { to: '/', label: 'Home' },
+                { to: '/leaderboard', label: 'Leaderboard' },
+                { to: '/side-bets', label: 'Side Bets' },
+                { to: '/rules', label: 'Rules' },
+                { to: '/faq', label: 'FAQ' },
+                ...(user ? [{ to: '/bets', label: 'Bets' }] : []),
+              ].map(({ to, label }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  onClick={() => setMobileOpen(false)}
+                  className={`${
+                    location.pathname === to
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  } block px-3 py-2 rounded-md text-base font-medium`}
+                >
+                  {label}
+                </Link>
+              ))}
+              {user?.role === 'admin' && (
+                <>
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className={`${
+                      location.pathname === '/admin'
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    } block px-3 py-2 rounded-md text-base font-medium`}
+                  >
+                    Admin
+                  </Link>
+                  <Link
+                    to="/admin/users"
+                    onClick={() => setMobileOpen(false)}
+                    className={`${
+                      location.pathname === '/admin/users'
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    } block px-3 py-2 rounded-md text-base font-medium`}
+                  >
+                    Users
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile auth buttons */}
+            {!user && (
+              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+                <div className="flex space-x-3">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              </div>
             )}
           </div>
         )}
       </nav>
 
-      {/* User bar (desktop) */}
-      <div className="sm:flex hidden justify-end bg-white shadow-sm pr-6 py-2">
+      {/* Desktop user bar */}
+      <div className="hidden sm:flex justify-end bg-white shadow-sm pr-6 py-2">
         {user ? (
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-700">{user.name} ({user.points} points)</span>
             <button
-              onClick={async () => {
-                await signOut();
-                navigate('/login');
-              }}
+              onClick={handleSignOut}
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Sign Out
@@ -151,7 +229,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         )}
       </div>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {children}
       </main>
     </div>

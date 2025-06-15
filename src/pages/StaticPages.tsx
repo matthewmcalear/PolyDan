@@ -138,7 +138,7 @@ const SideBetList: React.FC = () => {
 
 export const Rules: React.FC = () => (
   <div className="bg-white p-6 rounded-lg shadow">
-    <h1 className="text-xl font-semibold mb-4">Pool Rules</h1>
+    <h1 className="text-xl font-semibold mb-4">Competition Rules</h1>
     <p>Detailed rules and scoring info will be here.</p>
   </div>
 );

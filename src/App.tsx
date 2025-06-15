@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Bets from './pages/Bets';
 import Admin from './pages/Admin';
 import UserAdmin from './pages/UserAdmin';
+import AdminDashboard from './pages/AdminDashboard';
 import { Leaderboard, SideBets, Rules, Profile, FAQ } from './pages/StaticPages';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -78,6 +79,14 @@ function App() {
             />
             <Route
               path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/champions"
               element={
                 <AdminRoute>
                   <Admin />

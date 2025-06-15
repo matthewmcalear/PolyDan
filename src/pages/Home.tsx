@@ -8,10 +8,10 @@ const Home: React.FC = () => {
   return (
     <>
       {/* Hero Header */}
-      <header className="bg-indigo-600 rounded-lg text-white p-8 shadow mb-10">
-        <h1 className="text-3xl font-extrabold">PolyDan Iron‑Man Pool</h1>
-        <p className="mt-2 text-indigo-100 max-w-2xl">
-          Track weekly picks, standings and side‑bets with family and friends. New to the pool? Check the rules below to get started!
+      <header className="bg-indigo-600 rounded-lg text-white p-4 sm:p-8 shadow mb-6 sm:mb-10">
+        <h1 className="text-2xl sm:text-3xl font-extrabold">PolyDan Iron‑Man Betting</h1>
+        <p className="mt-2 text-sm sm:text-base text-indigo-100 max-w-2xl">
+          Track weekly picks, standings and side‑bets with family and friends. New to the competition? Check the rules below to get started!
         </p>
         <div className="mt-4 space-x-4">
           {user ? (
@@ -26,44 +26,44 @@ const Home: React.FC = () => {
               to="/register"
               className="inline-flex items-center px-4 py-2 rounded-md bg-white/10 hover:bg-white/20 text-sm font-medium"
             >
-              Join the Pool
+              Join the Competition
             </Link>
           )}
         </div>
       </header>
 
       {/* Quick‑link Grid */}
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {/* Leaderboard */}
-        <Link to="/leaderboard" className="card">
+        <Link to="/leaderboard" className="card hover:scale-[1.02] transition-transform">
           <h2 className="card-title">Leaderboard</h2>
-          <p className="card-body">See who's leading the pool and by how much.</p>
+          <p className="card-body">See who's leading the competition and by how much.</p>
         </Link>
 
         {/* Side Bets */}
-        <Link to="/side-bets" className="card">
+        <Link to="/side-bets" className="card hover:scale-[1.02] transition-transform">
           <h2 className="card-title">Side‑Bets</h2>
-          <p className="card-body">Join or create fun wagers outside the main pool.</p>
+          <p className="card-body">Join or create fun wagers outside the main competition.</p>
         </Link>
 
         {/* Rules */}
-        <Link to="/rules" className="card">
-          <h2 className="card-title">Pool Rules</h2>
+        <Link to="/rules" className="card hover:scale-[1.02] transition-transform">
+          <h2 className="card-title">Competition Rules</h2>
           <p className="card-body">Read the scoring system and weekly deadlines.</p>
         </Link>
 
         {/* Profile */}
         {user && (
-          <Link to="/profile" className="card">
+          <Link to="/profile" className="card hover:scale-[1.02] transition-transform">
             <h2 className="card-title">Your Profile</h2>
             <p className="card-body">Edit your name, email and avatar.</p>
           </Link>
         )}
 
         {/* FAQ */}
-        <Link to="/faq" className="card">
+        <Link to="/faq" className="card hover:scale-[1.02] transition-transform">
           <h2 className="card-title">Help & FAQ</h2>
-          <p className="card-body">New to Iron‑Man pools? Start here.</p>
+          <p className="card-body">New to Iron‑Man betting? Start here.</p>
         </Link>
       </section>
     </>
@@ -75,6 +75,6 @@ export default Home;
 // Tailwind utility shortcuts via arbitrary classnames
 // NOTE: Tailwind doesn't provide `card`, `card-title`, etc. out of the box.
 // We rely on the following utility classes added globally (see index.css or a future refactor):
-// .card { @apply rounded-lg bg-white shadow p-6 transition hover:shadow-lg; }
-// .card-title { @apply text-lg font-semibold text-gray-900 mb-2; }
+// .card { @apply rounded-lg bg-white shadow p-4 sm:p-6 transition hover:shadow-lg; }
+// .card-title { @apply text-base sm:text-lg font-semibold text-gray-900 mb-2; }
 // .card-body { @apply text-sm text-gray-600; } 

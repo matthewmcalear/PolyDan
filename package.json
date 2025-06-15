@@ -15,20 +15,18 @@
     "@testing-library/user-event": "^14.5.2",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.19",
-    "@types/react": "^18.2.55",
-    "@types/react-dom": "^18.2.19",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.2",
+    "express-rate-limit": "^6.7.0",
+    "express-validator": "^7.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.5.2",
     "react-router-dom": "^6.22.1",
     "react-scripts": "^5.0.1",
-    "swr": "^2.2.0",
     "serve": "^14.2.4",
-    "express": "^4.19.2",
-    "cors": "^2.8.5",
-    "express-rate-limit": "^6.7.0",
-    "express-validator": "^7.0.1",
-    "dotenv": "^16.4.0",
+    "swr": "^2.2.0",
     "tailwindcss": "^3.4.4",
     "typescript": "^4.9.5",
     "web-vitals": "^3.5.2"
@@ -64,9 +62,12 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.1.1",
-    "postcss": "^8.4.35",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/react-router-dom": "^5.3.3",
     "autoprefixer": "^10.4.18",
-    "nodemon": "^3.0.3"
+    "gh-pages": "^6.1.1",
+    "nodemon": "^3.0.3",
+    "postcss": "^8.4.35"
   }
 }
