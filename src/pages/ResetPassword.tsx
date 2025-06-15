@@ -14,7 +14,8 @@ const Input: React.FC<{
   required?: boolean;
   autoComplete?: string;
   className?: string;
-}> = ({ id, type, placeholder, value, onChange, required, autoComplete, className = '' }) => (
+  'data-testid'?: string;
+}> = ({ id, type, placeholder, value, onChange, required, autoComplete, className = '', 'data-testid': testId }) => (
   <input
     id={id}
     name={id}
@@ -25,6 +26,7 @@ const Input: React.FC<{
     placeholder={placeholder}
     value={value}
     onChange={onChange}
+    data-testid={testId}
   />
 );
 
@@ -34,19 +36,21 @@ const Button: React.FC<{
   onClick?: () => void;
   children: React.ReactNode;
   className?: string;
-}> = ({ type, disabled, onClick, children, className = '' }) => (
+  'data-testid'?: string;
+}> = ({ type, disabled, onClick, children, className = '', 'data-testid': testId }) => (
   <button
     type={type}
     disabled={disabled}
     onClick={onClick}
     className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    data-testid={testId}
   >
     {children}
   </button>
 );
 
 const ErrorMessage: React.FC<{ message: string }> = ({ message }) => (
-  <div className="rounded-md bg-red-50 p-4">
+  <div className="rounded-md bg-red-50 p-4" data-testid="error-message">
     <div className="text-sm text-red-700">{message}</div>
   </div>
 );
@@ -62,8 +66,9 @@ const useResetToken = () => {
   const location = useLocation();
 
   useEffect(() => {
+    let cancelled = false;
+
     const handleResetToken = async () => {
-      let cancelled = false;
       const hashParams = new URLSearchParams(location.hash.substring(1));
       const searchParams = new URLSearchParams(location.search);
       
@@ -109,13 +114,13 @@ const useResetToken = () => {
           setIsLoading(false);
         }
       }
-
-      return () => {
-        cancelled = true;
-      };
     };
 
     handleResetToken();
+
+    return () => {
+      cancelled = true;
+    };
   }, [location.hash, location.search]);
 
   return { isLoading, error, isSessionEstablished };
@@ -264,7 +269,7 @@ const ResetPassword: React.FC = () => {
       <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" data-testid="loading-spinner"></div>
           </div>
           <p className="text-center text-gray-600">Processing reset link...</p>
         </div>
@@ -286,7 +291,7 @@ const ResetPassword: React.FC = () => {
             </p>
           </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
+          <form className="mt-8 space-y-6" onSubmit={handleResetPassword} data-testid="reset-password-form">
             {error && <ErrorMessage message={error} />}
 
             <div className="rounded-md shadow-sm -space-y-px">
@@ -298,6 +303,7 @@ const ResetPassword: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="rounded-t-md"
+                data-testid="new-password-input"
               />
               <Input
                 id="confirm-password"
@@ -307,10 +313,11 @@ const ResetPassword: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 className="rounded-b-md"
+                data-testid="confirm-password-input"
               />
             </div>
 
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} data-testid="reset-password-button">
               {loading ? 'Updating...' : 'Reset Password'}
             </Button>
           </form>
@@ -332,7 +339,7 @@ const ResetPassword: React.FC = () => {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleForgotPassword}>
+        <form className="mt-8 space-y-6" onSubmit={handleForgotPassword} data-testid="forgot-password-form">
           {error && <ErrorMessage message={error} />}
 
           <Input
@@ -343,14 +350,15 @@ const ResetPassword: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
+            data-testid="email-input"
           />
 
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} data-testid="send-reset-button">
             {loading ? 'Sending...' : 'Send Reset Instructions'}
           </Button>
 
           <div className="text-sm text-center">
-            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500" data-testid="back-to-login">
               Back to login
             </Link>
           </div>
