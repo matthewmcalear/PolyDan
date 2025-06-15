@@ -19,30 +19,21 @@ const useResetToken = () => {
       hasAttemptedSetup.current = true;
 
       try {
-        // Supabase v2: First try exchangeCodeForSession for magic/recovery links
-        // This is the recommended approach for handling auth code exchanges
-        const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        // For password recovery, we use the access_token directly from URL params
+        const params = new URLSearchParams(window.location.search);
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
         
-        if (exchangeError) {
-          console.error('Error exchanging code for session:', exchangeError);
-          // Fallback to manual session setup if exchange fails
-          const params = new URLSearchParams(window.location.search);
-          const accessToken = params.get('access_token');
-          const refreshToken = params.get('refresh_token');
+        if (accessToken) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || '',
+          });
           
-          if (accessToken) {
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || '',
-            });
-            
-            if (error) throw error;
-            if (data?.session) {
-              setIsSessionEstablished(true);
-            }
+          if (error) throw error;
+          if (data?.session) {
+            setIsSessionEstablished(true);
           }
-        } else if (exchangeData?.session) {
-          setIsSessionEstablished(true);
         }
       } catch (error) {
         console.error('Error setting up session:', error);
