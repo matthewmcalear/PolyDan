@@ -2,68 +2,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Helper components to reduce duplication
-const Input: React.FC<{
-  id: string;
-  type: string;
-  placeholder: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean;
-  autoComplete?: string;
-  className?: string;
-  'data-testid'?: string;
-}> = ({ id, type, placeholder, value, onChange, required, autoComplete, className = '', 'data-testid': testId }) => (
-  <input
-    id={id}
-    name={id}
-    type={type}
-    required={required}
-    autoComplete={autoComplete}
-    className={`appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${className}`}
-    placeholder={placeholder}
-    value={value}
-    onChange={onChange}
-    data-testid={testId}
-  />
-);
-
-const Button: React.FC<{
-  type: 'submit' | 'button';
-  disabled?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-  className?: string;
-  'data-testid'?: string;
-}> = ({ type, disabled, onClick, children, className = '', 'data-testid': testId }) => (
-  <button
-    type={type}
-    disabled={disabled}
-    onClick={onClick}
-    className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
-    data-testid={testId}
-  >
-    {children}
-  </button>
-);
-
-const ErrorMessage: React.FC<{ message: string }> = ({ message }) => (
-  <div className="rounded-md bg-red-50 p-4" data-testid="error-message">
-    <div className="text-sm text-red-700">{message}</div>
-  </div>
-);
-
-/**
- * Custom hook to handle the password reset token from URL
- * @returns Object containing loading state, error state, and session establishment status
- */
+// Custom hook to handle reset token and session setup
 const useResetToken = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isSessionEstablished, setIsSessionEstablished] = useState(false);
-  const location = useLocation();
+  const [isProcessingToken, setIsProcessingToken] = useState(true);
   const hasAttemptedSetup = useRef(false);
 
   useEffect(() => {
@@ -72,109 +15,95 @@ const useResetToken = () => {
       if (hasAttemptedSetup.current) return;
       hasAttemptedSetup.current = true;
 
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const searchParams = new URLSearchParams(location.search);
-      
-      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
-      
-      if (!accessToken) {
-        setError('Invalid reset link. Please request a new password reset.');
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        // Set up the session directly without signing out first
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || '',
-        });
-
-        if (error) throw error;
-
-        // Verify the session was established
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        // Supabase v2: First try exchangeCodeForSession for magic/recovery links
+        // This is the recommended approach for handling auth code exchanges
+        const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        
+        if (exchangeError) {
+          console.error('Error exchanging code for session:', exchangeError);
+          // Fallback to manual session setup if exchange fails
+          const params = new URLSearchParams(window.location.search);
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          
+          if (accessToken) {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+            
+            if (error) throw error;
+            if (data?.session) {
+              setIsSessionEstablished(true);
+            }
+          }
+        } else if (exchangeData?.session) {
           setIsSessionEstablished(true);
-          // Clear the URL parameters
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-          throw new Error('Failed to establish session');
         }
-      } catch (err: any) {
-        console.error('Error setting session:', err);
-        setError(err.message || 'Failed to process reset link');
+      } catch (error) {
+        console.error('Error setting up session:', error);
+        toast.error('Failed to set up password reset session. Please try again.');
       } finally {
-        setIsLoading(false);
+        setIsProcessingToken(false);
       }
     };
 
     handleResetToken();
-  }, [location.hash, location.search]);
+  }, []);
 
-  return { isLoading, error, isSessionEstablished };
+  return { isSessionEstablished, isProcessingToken };
 };
 
-/**
- * Custom hook to handle auth state changes
- * @returns Object containing session state and error handling
- */
-const useAuthState = () => {
-  const [isSessionEstablished, setIsSessionEstablished] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Helper component for form inputs
+const FormInput: React.FC<{
+  type: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  required?: boolean;
+  'data-testid'?: string;
+}> = ({ type, value, onChange, placeholder, required = true, 'data-testid': testId }) => (
+  <input
+    type={type}
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    required={required}
+    data-testid={testId}
+    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+);
 
-  useEffect(() => {
-    let cancelled = false;
-    console.log('Setting up auth state change listener...');
+// Helper component for error messages
+const ErrorMessage: React.FC<{ message: string; 'data-testid'?: string }> = ({ message, 'data-testid': testId }) => (
+  <p className="text-red-500 text-sm mt-1" data-testid={testId}>{message}</p>
+);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (cancelled) return;
-      
-      console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
-      
-      if (event === 'SIGNED_IN' && session && !isSessionEstablished) {
-        setIsSessionEstablished(true);
-      } else if (event === 'SIGNED_OUT') {
-        setIsSessionEstablished(false);
-      }
-    });
+// Helper component for loading spinner
+const LoadingSpinner: React.FC<{ 'data-testid'?: string }> = ({ 'data-testid': testId }) => (
+  <div className="flex justify-center" data-testid={testId}>
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+  </div>
+);
 
-    return () => {
-      cancelled = true;
-      console.log('Cleaning up auth state change listener');
-      subscription.unsubscribe();
-    };
-  }, [isSessionEstablished]);
-
-  return { isSessionEstablished, error, setError };
-};
-
-/**
- * ResetPassword component that handles both forgot password and password reset flows
- * @returns JSX.Element
- */
 const ResetPassword: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
   const isSubmitting = useRef(false);
+  const { isSessionEstablished, isProcessingToken } = useResetToken();
 
-  // Check if we have a reset token in the URL
-  const hasResetToken = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
-  
-  // Use our custom hooks
-  const { isLoading: isTokenLoading, error: tokenError, isSessionEstablished } = useResetToken();
-  const { error: authError } = useAuthState();
-
-  // Combine errors
+  // Clear URL parameters after processing
   useEffect(() => {
-    setError(tokenError || authError);
-  }, [tokenError, authError]);
+    if (isSessionEstablished) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [isSessionEstablished]);
 
   const handleForgotPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,24 +115,22 @@ const ResetPassword: React.FC = () => {
     setError(null);
 
     try {
-      console.log('Sending reset password email...');
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password'
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;
 
-      toast.success('Password reset instructions sent to your email!');
+      toast.success('Password reset instructions sent to your email');
       setEmail('');
-      navigate('/reset-confirmation');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error sending reset email:', error);
-      setError(error.message || 'Failed to send reset instructions');
+      setError('Failed to send reset instructions. Please try again.');
     } finally {
       setLoading(false);
       isSubmitting.current = false;
     }
-  }, [email, loading, navigate]);
+  }, [email, loading]);
 
   const handleResetPassword = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,84 +155,76 @@ const ResetPassword: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Password updated successfully!');
+      toast.success('Password updated successfully');
       navigate('/login');
-    } catch (error: any) {
-      console.error('Error resetting password:', error);
-      setError(error.message || 'Failed to reset password');
+    } catch (error) {
+      console.error('Error updating password:', error);
+      setError('Failed to update password. Please try again.');
     } finally {
       setLoading(false);
       isSubmitting.current = false;
     }
   }, [password, confirmPassword, loading, navigate]);
 
-  // Show loading state while processing token
-  if (isTokenLoading) {
+  if (isProcessingToken) {
     return (
-      <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" data-testid="loading-spinner"></div>
-          </div>
-          <p className="text-center text-gray-600">Processing reset link...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+          <LoadingSpinner data-testid="loading-spinner" />
+          <p className="text-center text-gray-600">Setting up password reset...</p>
         </div>
       </div>
     );
   }
 
-  // Show the password reset form if we have a reset token and session is established
-  if (hasResetToken && isSessionEstablished) {
+  if (isSessionEstablished) {
     return (
-      <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
               Reset Your Password
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Enter your new password below
-            </p>
           </div>
-
           <form className="mt-8 space-y-6" onSubmit={handleResetPassword} data-testid="reset-password-form">
-            {error && <ErrorMessage message={error} />}
-
-            <div className="rounded-md shadow-sm -space-y-px">
-              <Input
-                id="password"
+            <div className="rounded-md shadow-sm space-y-4">
+              <FormInput
                 type="password"
-                placeholder="New Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                className="rounded-t-md"
+                placeholder="New Password"
                 data-testid="new-password-input"
               />
-              <Input
-                id="confirm-password"
+              <FormInput
                 type="password"
-                placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="rounded-b-md"
+                placeholder="Confirm New Password"
                 data-testid="confirm-password-input"
               />
             </div>
 
-            <Button type="submit" disabled={loading} data-testid="reset-password-button">
-              {loading ? 'Updating...' : 'Reset Password'}
-            </Button>
+            {error && <ErrorMessage message={error} data-testid="error-message" />}
+
+            <div>
+              <button
+                type="submit"
+                disabled={loading}
+                data-testid="reset-password-button"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {loading ? <LoadingSpinner data-testid="submit-spinner" /> : 'Reset Password'}
+              </button>
+            </div>
           </form>
         </div>
       </div>
     );
   }
 
-  // Show the forgot password form by default
   return (
-    <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Forgot Your Password?
@@ -314,28 +233,33 @@ const ResetPassword: React.FC = () => {
             Enter your email address and we'll send you instructions to reset your password.
           </p>
         </div>
-
         <form className="mt-8 space-y-6" onSubmit={handleForgotPassword} data-testid="forgot-password-form">
-          {error && <ErrorMessage message={error} />}
+          <div>
+            <FormInput
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              data-testid="email-input"
+            />
+          </div>
 
-          <Input
-            id="email"
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            data-testid="email-input"
-          />
+          {error && <ErrorMessage message={error} data-testid="error-message" />}
 
-          <Button type="submit" disabled={loading} data-testid="send-reset-button">
-            {loading ? 'Sending...' : 'Send Reset Instructions'}
-          </Button>
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              data-testid="send-reset-button"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {loading ? <LoadingSpinner data-testid="submit-spinner" /> : 'Send Reset Instructions'}
+            </button>
+          </div>
 
           <div className="text-sm text-center">
-            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500" data-testid="back-to-login">
-              Back to login
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500" data-testid="back-to-login">
+              Back to Login
             </Link>
           </div>
         </form>
@@ -344,5 +268,4 @@ const ResetPassword: React.FC = () => {
   );
 };
 
-export { ResetPassword };
 export default ResetPassword; 
