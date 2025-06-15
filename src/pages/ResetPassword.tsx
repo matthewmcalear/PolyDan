@@ -12,6 +12,19 @@ const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    // If we're on localhost but have a token, redirect to the production URL
+    if (window.location.hostname === 'localhost' && location.search.includes('type=recovery')) {
+      const searchParams = new URLSearchParams(location.search);
+      const token = searchParams.get('token');
+      if (token) {
+        const newUrl = `https://polydan-1f195a22e2e0.herokuapp.com/reset-password?${location.search}`;
+        window.location.href = newUrl;
+        return;
+      }
+    }
+  }, [location.search]);
+
   // Check if we're in reset mode (has access token) or forgot password mode
   const isResetMode = location.hash.includes('access_token') || location.search.includes('type=recovery');
 
@@ -44,10 +57,8 @@ const ResetPassword: React.FC = () => {
     setError('');
 
     try {
-      // Use the current origin for development and production URLs
-      const redirectTo = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:3000/reset-password'
-        : 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password';
+      // Always use the production URL for password reset
+      const redirectTo = 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password';
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
