@@ -9,112 +9,46 @@ const ResetPassword: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [sessionEstablished, setSessionEstablished] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if we're in reset mode (has access token) or forgot password mode
-  const isResetMode = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
+  // Check if we have a reset token in the URL
+  const hasResetToken = location.hash.includes('type=recovery') || location.search.includes('type=recovery');
 
-  // Store the reset mode state
-  const [isInResetMode, setIsInResetMode] = useState(isResetMode);
-
-  // Handle reset token and session setup
+  // Handle the reset token when the component mounts
   useEffect(() => {
     const handleResetToken = async () => {
-      if (isResetMode && !sessionEstablished) {
-        console.log('Reset mode detected, checking URL parameters...');
-        console.log('Hash:', location.hash);
-        console.log('Search:', location.search);
+      if (!hasResetToken) return;
 
-        const hashParams = new URLSearchParams(location.hash.substring(1));
-        const searchParams = new URLSearchParams(location.search);
-        
-        // Try to get token from hash first, then from search params
-        const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
-        
-        if (accessToken) {
-          console.log('Found access token, attempting to set session...');
-          try {
-            // Set the session with the token
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || '',
-            });
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const searchParams = new URLSearchParams(location.search);
+      
+      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+      
+      if (!accessToken) {
+        setError('Invalid reset link. Please request a new password reset.');
+        return;
+      }
 
-            if (error) {
-              console.error('Error setting session:', error);
-              setError(`Session error: ${error.message}`);
-              return;
-            }
+      try {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || '',
+        });
 
-            console.log('Session set successfully:', data);
-            setSessionEstablished(true);
-            setIsInResetMode(true);
-            
-            // Clear the URL parameters to remove the token
-            window.history.replaceState({}, document.title, window.location.pathname);
-          } catch (err) {
-            console.error('Unexpected error during session handling:', err);
-            setError('An unexpected error occurred. Please try again.');
-          }
-        } else {
-          console.log('No access token found in URL');
-          setError('Invalid reset link. Please request a new password reset.');
-        }
+        if (error) throw error;
+
+        // Clear the URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (err: any) {
+        console.error('Error setting session:', err);
+        setError(err.message || 'Failed to process reset link');
       }
     };
 
     handleResetToken();
-  }, [isResetMode, location.hash, location.search, sessionEstablished]);
-
-  // Listen for auth state changes
-  useEffect(() => {
-    console.log('Setting up auth state change listener...');
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
-      
-      if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session && !sessionEstablished) {
-        console.log('Session established through auth state change, showing reset form');
-        setSessionEstablished(true);
-        setIsInResetMode(true);
-        // Clear the URL parameters to remove the token
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    });
-
-    return () => {
-      console.log('Cleaning up auth state change listener');
-      subscription.unsubscribe();
-    };
-  }, [sessionEstablished]);
-
-  // Check initial session
-  useEffect(() => {
-    const checkSession = async () => {
-      if (!sessionEstablished) {
-        console.log('Checking initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error checking initial session:', error);
-          return;
-        }
-
-        console.log('Initial session check result:', session ? 'Session exists' : 'No session');
-        
-        if (session && isResetMode) {
-          console.log('Initial session found in reset mode, showing reset form');
-          setSessionEstablished(true);
-          setIsInResetMode(true);
-          // Clear the URL parameters to remove the token
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    };
-    checkSession();
-  }, [isResetMode, sessionEstablished]);
+  }, [hasResetToken, location.hash, location.search]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,19 +56,14 @@ const ResetPassword: React.FC = () => {
     setError('');
 
     try {
-      console.log('Sending reset password email...');
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://polydan-1f195a22e2e0.herokuapp.com/reset-password'
       });
 
-      if (error) {
-        console.error('Reset password error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast.success('Password reset instructions sent to your email!');
       setEmail('');
-      // Redirect to a confirmation page
       navigate('/reset-confirmation');
     } catch (error: any) {
       console.error('Error sending reset email:', error);
@@ -156,17 +85,12 @@ const ResetPassword: React.FC = () => {
     }
 
     try {
-      console.log('Attempting to update password...');
-      const { data, error } = await supabase.auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         password: password
       });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Password update successful:', data);
       toast.success('Password updated successfully!');
       navigate('/login');
     } catch (error: any) {
@@ -177,9 +101,8 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  // If we're in reset mode and the session is established, show the password reset form
-  if (isInResetMode && sessionEstablished) {
-    console.log('Rendering password reset form');
+  // Show the password reset form if we have a reset token
+  if (hasResetToken) {
     return (
       <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
