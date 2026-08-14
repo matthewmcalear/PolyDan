@@ -281,17 +281,17 @@ const Admin: React.FC = () => {
           </div>
 
           <form onSubmit={addChampion} className="mt-5">
-            <div className="flex rounded-md shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
               <input
                 type="text"
                 value={newChampionName}
                 onChange={(e) => setNewChampionName(e.target.value)}
-                className="flex-1 rounded-none rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="flex-1 px-4 py-3 text-base rounded-lg sm:rounded-none sm:rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="Enter champion name"
               />
               <button
                 type="submit"
-                className="inline-flex items-center rounded-none rounded-r-md border border-l-0 border-gray-300 bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="inline-flex items-center justify-center px-4 py-3 min-h-[44px] rounded-lg sm:rounded-none sm:rounded-r-md border sm:border-l-0 border-gray-300 bg-indigo-600 text-base font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
               >
                 Add Champion
               </button>
@@ -299,66 +299,54 @@ const Admin: React.FC = () => {
           </form>
 
           <div className="mt-6">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                      Name
-                    </th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Status
-                    </th>
-                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {champions.map((champion) => (
-                    <tr key={champion.id}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                        {champion.name}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+            <div className="space-y-3">
+              {champions.map((champion) => (
+                <div
+                  key={champion.id}
+                  className="bg-white p-4 rounded-lg shadow border border-gray-200"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900">{champion.name}</h4>
+                      <div className="mt-2">
                         {champion.isWinner ? (
-                          <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
+                          <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
                             Winner
                           </span>
                         ) : champion.isEliminated ? (
-                          <span className="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">
+                          <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-800">
                             Eliminated
                           </span>
                         ) : (
-                          <span className="inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800">
+                          <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-800">
                             Active
                           </span>
                         )}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <button
-                          onClick={() => toggleEliminationStatus(champion)}
-                          disabled={isResolving || winner !== undefined}
-                          className="mr-2 rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {champion.isEliminated ? 'Restore' : 'Eliminate'}
-                        </button>
-                        <button
-                          onClick={() => setWinner(champion)}
-                          disabled={champion.isWinner || isResolving || winner !== undefined}
-                          className={`rounded px-2 py-1 text-xs font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                            champion.isWinner || winner
-                              ? 'bg-gray-400 cursor-not-allowed'
-                              : 'bg-green-600 hover:bg-green-500 focus-visible:outline-green-600'
-                          }`}
-                        >
-                          {champion.isWinner ? 'Current Winner' : 'Crown Winner'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={() => toggleEliminationStatus(champion)}
+                      disabled={isResolving || winner !== undefined}
+                      className="flex-1 px-4 py-2 min-h-[44px] rounded-lg bg-red-600 text-base font-semibold text-white hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    >
+                      {champion.isEliminated ? 'Restore' : 'Eliminate'}
+                    </button>
+                    <button
+                      onClick={() => setWinner(champion)}
+                      disabled={champion.isWinner || isResolving || winner !== undefined}
+                      className={`flex-1 px-4 py-2 min-h-[44px] rounded-lg text-base font-semibold text-white focus:outline-none focus:ring-2 transition ${
+                        champion.isWinner || winner
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-green-600 hover:bg-green-500 focus:ring-green-600'
+                      }`}
+                    >
+                      {champion.isWinner ? 'Current Winner' : 'Crown Winner'}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
