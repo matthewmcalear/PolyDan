@@ -128,76 +128,50 @@ const UserAdmin: React.FC = () => {
         </div>
       )}
 
-      <div className="mt-8 flex flex-col">
-        <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                      Name
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Email
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Created At
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Admin Status
-                    </th>
-                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        {user.name}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {user.email}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                          user.is_admin 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {user.is_admin ? 'Admin' : 'User'}
-                        </span>
-                      </td>
-                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <button
-                          onClick={() => toggleAdminStatus(user)}
-                          className="mr-2 text-indigo-600 hover:text-indigo-900"
-                        >
-                          {user.is_admin ? 'Remove Admin' : 'Make Admin'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to delete ${user.email}?`)) {
-                              deleteUser(user.id);
-                            }
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <div className="mt-6 space-y-3">
+        {users.map((user) => (
+          <div
+            key={user.id}
+            className="bg-white p-4 rounded-lg shadow border border-gray-200"
+          >
+            <div className="mb-3">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h4 className="text-base font-semibold text-gray-900">{user.name}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{user.email}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Joined {new Date(user.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
+                  user.is_admin 
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {user.is_admin ? 'Admin' : 'User'}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => toggleAdminStatus(user)}
+                className="flex-1 px-4 py-2 min-h-[44px] rounded-lg border-2 border-indigo-600 text-base font-semibold text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition"
+              >
+                {user.is_admin ? 'Remove Admin' : 'Make Admin'}
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to delete ${user.email}?`)) {
+                    deleteUser(user.id);
+                  }
+                }}
+                className="flex-1 px-4 py-2 min-h-[44px] rounded-lg bg-red-600 text-base font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+              >
+                Delete
+              </button>
             </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

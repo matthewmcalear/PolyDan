@@ -254,7 +254,7 @@ const ResetPassword: React.FC = () => {
                     navigate('/login', { replace: true });
                   }
                 }}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="w-full flex justify-center items-center py-3 px-4 min-h-[44px] border border-transparent rounded-lg shadow-sm text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
                 data-testid="go-to-login-button"
               >
                 Go to Login
@@ -312,7 +312,7 @@ const ResetPassword: React.FC = () => {
                 type="submit"
                 disabled={loading}
                 data-testid="reset-password-button"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="group relative w-full flex justify-center items-center py-3 px-4 min-h-[44px] border border-transparent text-base font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition"
               >
                 {loading ? <LoadingSpinner size="sm" data-testid="submit-spinner" /> : 'Reset Password'}
               </button>
@@ -359,11 +359,11 @@ const ResetPassword: React.FC = () => {
           {error && <ErrorMessage message={error} data-testid="error-message" />}
 
           <div>
-            <button
+              <button
               type="submit"
               disabled={loading}
               data-testid="send-reset-button"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center items-center py-3 px-4 min-h-[44px] border border-transparent text-base font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition"
             >
               {loading ? <LoadingSpinner size="sm" data-testid="submit-spinner" /> : 'Send Reset Instructions'}
             </button>
