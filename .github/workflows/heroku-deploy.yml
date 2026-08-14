@@ -22,9 +22,12 @@ jobs:
       - name: Build
         run: npm run build
         
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+        
       - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "polydan"
-          heroku_email: ${{secrets.HEROKU_EMAIL}} 
+        env:
+          HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
+        run: |
+          heroku git:remote -a polydan
+          git push heroku HEAD:main 
