@@ -179,7 +179,7 @@ const Bets: React.FC = () => {
                 id="champion"
                 value={selectedChampion}
                 onChange={(e) => setSelectedChampion(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base py-3"
                 required
               >
                 <option value="">Select a champion</option>
@@ -197,56 +197,56 @@ const Bets: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Bet Type
               </label>
-              <div className="mt-2 space-y-2">
-                <label className="flex items-center p-3 border rounded-md cursor-pointer hover:bg-gray-50">
+              <div className="space-y-2">
+                <label className="flex items-center p-4 min-h-[44px] border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition">
                   <input
                     type="radio"
                     checked={isBettingFor}
                     onChange={() => setIsBettingFor(true)}
-                    className="form-radio h-4 w-4 text-indigo-600"
+                    className="form-radio h-5 w-5 text-indigo-600"
                   />
-                  <span className="ml-3">
-                    <span className="font-medium">For</span> - Bet this champion will win
+                  <span className="ml-3 text-base">
+                    <span className="font-semibold">For</span> - Bet this champion will win
                   </span>
                 </label>
-                <label className="flex items-center p-3 border rounded-md cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center p-4 min-h-[44px] border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition">
                   <input
                     type="radio"
                     checked={!isBettingFor}
                     onChange={() => setIsBettingFor(false)}
-                    className="form-radio h-4 w-4 text-indigo-600"
+                    className="form-radio h-5 w-5 text-indigo-600"
                   />
-                  <span className="ml-3">
-                    <span className="font-medium">Against</span> - Bet this champion won't win
+                  <span className="ml-3 text-base">
+                    <span className="font-semibold">Against</span> - Bet this champion won't win
                   </span>
                 </label>
               </div>
             </div>
 
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
                 Bet Amount (Fake $)
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
+              <div className="relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <span className="text-gray-500 text-base">$</span>
                 </div>
                 <input
                   type="number"
                   id="amount"
                   value={betAmount || ''}
                   onChange={(e) => setBetAmount(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="block w-full pl-9 pr-4 py-3 text-base rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                   placeholder="0"
                   required
                   min="1"
                   max={user?.points || 0}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-2 text-sm text-gray-600">
                 Available: ${user?.points || 0}
               </p>
             </div>
@@ -276,7 +276,7 @@ const Bets: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full inline-flex justify-center items-center rounded-lg border border-transparent bg-indigo-600 py-3 px-4 min-h-[44px] text-base font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               disabled={!selectedChampion || betAmount <= 0 || !user || betAmount > user.points || isSubmitting}
             >
               {isSubmitting ? 'Placing Bet...' : 'Place Bet'}

@@ -50,35 +50,35 @@ const Home: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Hero Header */}
-      <header className="bg-indigo-600 rounded-lg text-white p-4 sm:p-8 shadow">
-        <h1 className="text-2xl sm:text-3xl font-extrabold">PolyDan Iron Man Betting</h1>
-        <p className="mt-2 text-sm sm:text-base text-indigo-100 max-w-2xl">
+      <header className="bg-indigo-600 rounded-lg text-white p-4 sm:p-6 shadow">
+        <h1 className="text-xl sm:text-3xl font-extrabold">PolyDan Iron Man Betting</h1>
+        <p className="mt-2 text-sm sm:text-base text-indigo-100">
           Family-friendly, last-man-standing prediction market. Bet fake dollars on who wins the Iron Man competition!
         </p>
         {user && (
-          <div className="mt-3 text-lg font-semibold text-white">
+          <div className="mt-3 text-base sm:text-lg font-semibold text-white">
             Your Balance: <span className="text-yellow-300">${user.points}</span> fake dollars
           </div>
         )}
-        <div className="mt-4 flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
           {user ? (
             <Link
               to="/bets"
-              className="inline-flex items-center px-5 py-2.5 rounded-md bg-yellow-400 hover:bg-yellow-300 text-indigo-900 text-sm font-bold transition"
+              className="inline-flex items-center justify-center px-5 py-3 min-h-[44px] rounded-lg bg-yellow-400 hover:bg-yellow-300 text-indigo-900 text-base font-bold transition"
             >
               Place Your Bet
             </Link>
           ) : (
             <Link
               to="/register"
-              className="inline-flex items-center px-5 py-2.5 rounded-md bg-yellow-400 hover:bg-yellow-300 text-indigo-900 text-sm font-bold transition"
+              className="inline-flex items-center justify-center px-5 py-3 min-h-[44px] rounded-lg bg-yellow-400 hover:bg-yellow-300 text-indigo-900 text-base font-bold transition"
             >
               Join the Competition
             </Link>
           )}
           <Link
             to="/rules"
-            className="inline-flex items-center px-4 py-2 rounded-md bg-white/10 hover:bg-white/20 text-sm font-medium transition"
+            className="inline-flex items-center justify-center px-4 py-3 min-h-[44px] rounded-lg bg-white/10 hover:bg-white/20 text-base font-medium transition"
           >
             How It Works
           </Link>
@@ -86,7 +86,7 @@ const Home: React.FC = () => {
       </header>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Who Wins Market */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
@@ -200,7 +200,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Quick Links */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link to="/side-bets" className="card hover:scale-[1.02] transition-transform">
           <h2 className="card-title">Side Bets</h2>
           <p className="card-body">Create or join fun side wagers outside the main market.</p>

@@ -49,31 +49,47 @@ const LeaderboardTable: React.FC = () => {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-sm text-left" aria-label="Leaderboard table">
-        <thead className="border-b text-gray-700">
-          <tr>
-            <th scope="col" className="py-2 pr-4 font-medium">
-              Rank
-            </th>
-            <th scope="col" className="py-2 pr-4 font-medium">
-              Name
-            </th>
-            <th scope="col" className="py-2 pr-4 font-medium text-right">
-              Points
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((p: User, idx: number) => (
-            <tr key={p.id} className={idx % 2 ? 'bg-gray-50' : ''}>
-              <td className="py-2 pr-4">{idx + 1}</td>
-              <td className="py-2 pr-4">{p.name}</td>
-              <td className="py-2 pr-4 text-right font-semibold">{p.points}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-2">
+      {players.map((p: User, idx: number) => (
+        <div
+          key={p.id}
+          className={`flex items-center justify-between p-4 rounded-lg ${
+            idx === 0
+              ? 'bg-yellow-50 border-2 border-yellow-300'
+              : idx === 1
+              ? 'bg-gray-100 border border-gray-300'
+              : idx === 2
+              ? 'bg-orange-50 border border-orange-200'
+              : 'bg-gray-50 border border-gray-200'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm ${
+                idx === 0
+                  ? 'bg-yellow-400 text-yellow-900'
+                  : idx === 1
+                  ? 'bg-gray-300 text-gray-700'
+                  : idx === 2
+                  ? 'bg-orange-300 text-orange-900'
+                  : 'bg-gray-200 text-gray-600'
+              }`}
+            >
+              {idx + 1}
+            </div>
+            <div>
+              <div className="font-semibold text-gray-900">{p.name}</div>
+              {p.role === 'admin' && (
+                <span className="text-xs text-gray-500">Admin</span>
+              )}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="font-bold text-indigo-600 text-lg">${p.points}</div>
+            <div className="text-xs text-gray-500">fake $</div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
