@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { Champion } from '../types';
 
@@ -7,6 +8,7 @@ const Admin: React.FC = () => {
   const [newChampionName, setNewChampionName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
 
   useEffect(() => {
     fetchChampions();
@@ -20,7 +22,19 @@ const Admin: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setChampions(data || []);
+      
+      const mappedChampions = (data || []).map(d => ({
+        id: d.id,
+        name: d.name,
+        isEliminated: d.is_eliminated,
+        isWinner: d.is_winner,
+        hasRedemptionChance: d.has_redemption_chance,
+        isRedeemed: d.is_redeemed,
+        createdAt: new Date(d.created_at),
+        updatedAt: new Date(d.updated_at),
+      }));
+      
+      setChampions(mappedChampions);
     } catch (error) {
       console.error('Error fetching champions:', error);
       setError('Failed to fetch champions');
@@ -47,12 +61,13 @@ const Admin: React.FC = () => {
 
       if (error) throw error;
       if (data) {
-        setChampions([...champions, ...data]);
+        await fetchChampions();
         setNewChampionName('');
+        toast.success('Champion added successfully');
       }
     } catch (error) {
       console.error('Error adding champion:', error);
-      setError('Failed to add champion');
+      toast.error('Failed to add champion');
     }
   };
 
@@ -62,24 +77,27 @@ const Admin: React.FC = () => {
         .from('champions')
         .update({
           is_eliminated: !champion.isEliminated,
-          is_winner: false, // Reset winner status if marking as eliminated
+          is_winner: false,
         })
         .eq('id', champion.id);
 
       if (error) throw error;
       
-      setChampions(champions.map(c => 
-        c.id === champion.id 
-          ? { ...c, isEliminated: !champion.isEliminated, isWinner: false }
-          : c
-      ));
+      await fetchChampions();
+      toast.success(`${champion.name} ${!champion.isEliminated ? 'eliminated' : 'restored'}`);
     } catch (error) {
       console.error('Error updating champion status:', error);
-      setError('Failed to update champion status');
+      toast.error('Failed to update champion status');
     }
   };
 
   const setWinner = async (champion: Champion) => {
+    if (!window.confirm(`Are you sure you want to crown ${champion.name} as the winner? This will resolve all bets and cannot be undone.`)) {
+      return;
+    }
+
+    setIsResolving(true);
+
     try {
       // First, reset all champions' winner status
       const { error: resetError } = await supabase
@@ -94,27 +112,152 @@ const Admin: React.FC = () => {
         .from('champions')
         .update({
           is_winner: true,
-          is_eliminated: false, // Un-eliminate if they were eliminated
+          is_eliminated: false,
         })
         .eq('id', champion.id);
 
       if (error) throw error;
 
-      setChampions(champions.map(c => ({
-        ...c,
-        isWinner: c.id === champion.id,
-        isEliminated: c.id === champion.id ? false : c.isEliminated,
-      })));
+      // Now resolve all bets
+      await resolveMarket(champion.id);
+
+      await fetchChampions();
+      toast.success(`${champion.name} crowned as winner! All bets resolved.`);
     } catch (error) {
       console.error('Error setting winner:', error);
-      setError('Failed to set winner');
+      toast.error('Failed to set winner');
+    } finally {
+      setIsResolving(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const resolveMarket = async (winnerId: string) => {
+    try {
+      // Fetch all unresolved bets
+      const { data: bets, error: betsError } = await supabase
+        .from('bets')
+        .select('*')
+        .eq('is_resolved', false);
+
+      if (betsError) throw betsError;
+
+      if (!bets || bets.length === 0) {
+        console.log('No unresolved bets to process');
+        return;
+      }
+
+      console.log(`Resolving ${bets.length} bets for winner ${winnerId}`);
+
+      // Process each bet
+      for (const bet of bets) {
+        let payout = 0;
+        let won = false;
+
+        if (bet.is_for && bet.champion_id === winnerId) {
+          // Bet FOR the winner - they win!
+          payout = bet.amount * bet.odds;
+          won = true;
+        } else if (!bet.is_for && bet.champion_id !== winnerId) {
+          // Bet AGAINST a non-winner - they win!
+          payout = bet.amount * bet.odds;
+          won = true;
+        }
+        // All other cases: lost bet, payout = 0
+
+        // Update bet as resolved
+        const { error: updateBetError } = await supabase
+          .from('bets')
+          .update({
+            is_resolved: true,
+            payout: payout,
+            resolved_at: new Date().toISOString(),
+          })
+          .eq('id', bet.id);
+
+        if (updateBetError) throw updateBetError;
+
+        if (won && payout > 0) {
+          // Credit user's account
+          const { data: userData, error: userFetchError } = await supabase
+            .from('users')
+            .select('points')
+            .eq('id', bet.user_id)
+            .single();
+
+          if (userFetchError) throw userFetchError;
+
+          const { error: updateUserError } = await supabase
+            .from('users')
+            .update({ points: (userData.points || 0) + payout })
+            .eq('id', bet.user_id);
+
+          if (updateUserError) throw updateUserError;
+
+          // Create transaction record
+          const { data: championData } = await supabase
+            .from('champions')
+            .select('name')
+            .eq('id', bet.champion_id)
+            .single();
+
+          const { error: txError } = await supabase
+            .from('transactions')
+            .insert([{
+              user_id: bet.user_id,
+              amount: payout,
+              reason: `Winning bet payout: ${bet.is_for ? 'For' : 'Against'} ${championData?.name || 'Unknown'}`,
+              meta: {
+                bet_id: bet.id,
+                bet_type: bet.is_for ? 'for' : 'against',
+                champion_id: bet.champion_id,
+                payout: payout,
+                original_bet: bet.amount,
+                odds: bet.odds,
+              },
+            }]);
+
+          if (txError) throw txError;
+
+          console.log(`Paid out $${payout} to user ${bet.user_id}`);
+        }
+      }
+
+      console.log('Market resolution complete');
+    } catch (error) {
+      console.error('Error resolving market:', error);
+      throw error;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+
+  const winner = champions.find((c) => c.isWinner);
 
   return (
     <div className="space-y-6">
+      {isResolving && (
+        <div className="rounded-md bg-yellow-50 p-4 border border-yellow-200">
+          <div className="text-sm text-yellow-700 font-medium">
+            Resolving market and processing payouts... Please wait.
+          </div>
+        </div>
+      )}
+
+      {winner && (
+        <div className="rounded-md bg-green-50 p-4 border border-green-200">
+          <div className="text-sm text-green-700">
+            <strong className="font-semibold">Market Resolved:</strong> {winner.name} has been crowned the winner! 
+            All bets have been resolved and payouts credited.
+          </div>
+        </div>
+      )}
+
       <div className="bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg font-medium leading-6 text-gray-900">
@@ -126,6 +269,16 @@ const Admin: React.FC = () => {
               <div className="text-sm text-red-700">{error}</div>
             </div>
           )}
+
+          <div className="mt-2 rounded-md bg-blue-50 p-4 text-sm text-blue-700">
+            <p><strong>Instructions:</strong></p>
+            <ul className="list-disc list-inside mt-1 space-y-1">
+              <li>Add champions before the competition starts</li>
+              <li>Mark champions as eliminated as they drop out</li>
+              <li>When ready, crown the final winner to resolve all bets and pay out winnings</li>
+              <li><strong>Warning:</strong> Setting a winner will resolve the entire market and cannot be undone!</li>
+            </ul>
+          </div>
 
           <form onSubmit={addChampion} className="mt-5">
             <div className="flex rounded-md shadow-sm">
@@ -185,20 +338,21 @@ const Admin: React.FC = () => {
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         <button
                           onClick={() => toggleEliminationStatus(champion)}
-                          className="mr-2 rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                          disabled={isResolving || winner !== undefined}
+                          className="mr-2 rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {champion.isEliminated ? 'Restore' : 'Eliminate'}
                         </button>
                         <button
                           onClick={() => setWinner(champion)}
-                          disabled={champion.isWinner}
+                          disabled={champion.isWinner || isResolving || winner !== undefined}
                           className={`rounded px-2 py-1 text-xs font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                            champion.isWinner
+                            champion.isWinner || winner
                               ? 'bg-gray-400 cursor-not-allowed'
                               : 'bg-green-600 hover:bg-green-500 focus-visible:outline-green-600'
                           }`}
                         >
-                          {champion.isWinner ? 'Current Winner' : 'Set as Winner'}
+                          {champion.isWinner ? 'Current Winner' : 'Crown Winner'}
                         </button>
                       </td>
                     </tr>

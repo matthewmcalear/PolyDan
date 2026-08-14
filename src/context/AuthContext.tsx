@@ -158,7 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           name,
           role: 'user',
-          points: 0,
+          points: 1000, // Starting bankroll of 1000 fake dollars
           is_super: false,
           is_anonymous: false
         };
