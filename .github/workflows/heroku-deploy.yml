@@ -29,5 +29,5 @@ jobs:
         env:
           HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
         run: |
-          heroku git:remote -a polydan
+          git remote add heroku "https://heroku:${HEROKU_API_KEY}@git.heroku.com/polydan.git" || git remote set-url heroku "https://heroku:${HEROKU_API_KEY}@git.heroku.com/polydan.git"
           git push heroku HEAD:main 
