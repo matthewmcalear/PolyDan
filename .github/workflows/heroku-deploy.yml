@@ -29,6 +29,6 @@ jobs:
         env:
           HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
         run: |
-          if [ -z "$HEROKU_API_KEY" ]; then echo "ERROR: HEROKU_API_KEY is not set"; exit 1; fi
-          heroku git:remote -a polydan
+          git config --global credential.helper '!f() { echo "username="; echo "password=${HEROKU_API_KEY}"; }; f'
+          git remote add heroku https://git.heroku.com/polydan.git || git remote set-url heroku https://git.heroku.com/polydan.git
           git push heroku HEAD:main 
