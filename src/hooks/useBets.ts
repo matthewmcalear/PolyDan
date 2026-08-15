@@ -2,44 +2,61 @@ import useSWR from 'swr';
 import { supabase } from '../lib/supabase';
 import { Bet } from '../types';
 
-// Generic fetcher returning typed array of bets
+const mapBet = (row: any): Bet => ({
+  id: row.id,
+  user_id: row.user_id,
+  market_id: row.market_id,
+  outcome: row.outcome,
+  points: Number(row.points),
+  share_price: Number(row.share_price),
+  shares: Number(row.shares),
+  payout: row.payout ? Number(row.payout) : null,
+  created_at: new Date(row.created_at),
+});
+
 const fetchBets = async (): Promise<Bet[]> => {
   const { data, error } = await supabase
     .from('bets')
     .select('*')
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data || []) as Bet[];
+  return (data || []).map(mapBet);
 };
 
 interface UseBetsOptions {
-  userId?: string; // optional filter for current user
+  userId?: string;
+  marketId?: string;
 }
 
 export function useBets(options: UseBetsOptions = {}) {
-  const key = options.userId ? `bets-user-${options.userId}` : 'bets-all';
+  let key = 'bets-all';
+  if (options.userId) key = `bets-user-${options.userId}`;
+  if (options.marketId) key = `bets-market-${options.marketId}`;
+  
   const { data, error, isLoading, mutate } = useSWR(key, async () => {
+    let query = supabase.from('bets').select('*');
+    
     if (options.userId) {
-      const { data, error } = await supabase
-        .from('bets')
-        .select('*')
-        .eq('user_id', options.userId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return (data || []) as Bet[];
+      query = query.eq('user_id', options.userId);
     }
-    return fetchBets();
+    if (options.marketId) {
+      query = query.eq('market_id', options.marketId);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapBet);
   }, {
     refreshInterval: 8000,
   });
 
-  // Place a new bet and debit user points via RPC or manual updates
   const placeBet = async (payload: {
     user_id: string;
-    champion_id: string;
-    amount: number;
-    odds: number;
-    is_for: boolean;
+    market_id: string;
+    outcome: string;
+    points: number;
+    share_price: number;
+    shares: number;
   }) => {
     const { error } = await supabase.from('bets').insert([payload]);
     if (error) throw error;
@@ -53,7 +70,7 @@ export function useBets(options: UseBetsOptions = {}) {
   };
 
   const resolveBet = async (id: string, payout: number) => {
-    await updateBet(id, { isResolved: true, payout });
+    await updateBet(id, { payout });
   };
 
   return {

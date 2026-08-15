@@ -1,54 +1,41 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { useChampions } from '../hooks/useChampions';
+import { useMarkets } from '../hooks/useMarkets';
 import { useBets } from '../hooks/useBets';
-import { Champion, Bet } from '../types';
+import { Market, Bet } from '../types';
 import { supabase } from '../lib/supabase';
-import { calculatePoolOdds, getChampionOdds, formatProbability, formatDecimalOdds, calculatePayout } from '../utils/odds';
+import { formatProbability, formatDecimalOdds } from '../utils/odds';
 
 const Bets: React.FC = () => {
   const { user } = useAuth();
-  const { champions, isLoading: championsLoading, error: championsError, mutate: mutateChampions } = useChampions();
+  const { markets, isLoading: marketsLoading, error: marketsError, mutate: mutateMarkets } = useMarkets();
   const { bets, isLoading: betsLoading, error: betsError, mutate: mutateBets } = useBets();
-  const userBets = bets.filter((b: Bet) => b.userId === user?.id);
+  const userBets = user ? bets.filter((b: Bet) => b.user_id === user.id) : [];
 
   const [betAmount, setBetAmount] = useState<number>(0);
-  const [selectedChampion, setSelectedChampion] = useState<string>('');
-  const [isBettingFor, setIsBettingFor] = useState<boolean>(true);
+  const [selectedMarket, setSelectedMarket] = useState<string>('');
+  const [selectedOutcome, setSelectedOutcome] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const error = championsError || betsError;
-  const loading = championsLoading || betsLoading;
+  const error = marketsError || betsError;
+  const loading = marketsLoading || betsLoading;
 
-  const activeChampions = champions.filter((c: Champion) => !c.isEliminated);
-  const activeChampionIds = activeChampions.map((c: Champion) => c.id);
+  const openMarkets = markets.filter((m: Market) => m.status === 'open');
+  const selectedMarketData = openMarkets.find((m: Market) => m.id === selectedMarket);
 
-  // Calculate current pool-based odds
-  const poolStats = calculatePoolOdds(
-    bets.map((b: Bet) => ({ championId: b.championId, amount: b.amount, isFor: b.isFor })),
-    activeChampionIds
-  );
-
-  const getOddsForSelectedChampion = (): number => {
-    if (!selectedChampion) return 0;
-    const selectedChamp = champions.find((c: Champion) => c.id === selectedChampion);
-    if (!selectedChamp || selectedChamp.isEliminated) return 0;
+  // Calculate simple share price (simplified for now)
+  const getSharePrice = (): number => {
+    if (!selectedMarketData || !selectedOutcome) return 1;
     
-    if (isBettingFor) {
-      // For "For" bets, use pool odds
-      const odds = getChampionOdds(selectedChampion, bets.map((b: Bet) => ({ championId: b.championId, amount: b.amount, isFor: b.isFor })), activeChampionIds);
-      return odds.decimalOdds;
-    } else {
-      // For "Against" bets, simplified odds (not part of pool)
-      // In a simple implementation, "Against" bets pay even money if the champion doesn't win
-      return 2.0;
-    }
+    // Simple equal probability share price for now
+    const numOutcomes = selectedMarketData.outcomes.length;
+    return 1 / numOutcomes;
   };
 
   const placeBet = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !selectedChampion || betAmount <= 0) return;
+    if (!user || !selectedMarket || !selectedOutcome || betAmount <= 0) return;
 
     setIsSubmitting(true);
 
@@ -59,72 +46,53 @@ const Bets: React.FC = () => {
         return;
       }
 
-      const selectedChamp = champions.find((c: Champion) => c.id === selectedChampion);
-      if (!selectedChamp) {
-        toast.error('Invalid champion selection');
+      if (!selectedMarketData) {
+        toast.error('Invalid market selection');
         return;
       }
 
-      if (selectedChamp.isEliminated) {
-        toast.error('Cannot bet on eliminated champions');
+      if (selectedMarketData.status !== 'open') {
+        toast.error('This market is not open for betting');
         return;
       }
 
-      const odds = getOddsForSelectedChampion();
-      if (odds === 0) {
-        toast.error('Unable to calculate odds');
-        return;
-      }
+      const sharePrice = getSharePrice();
+      const shares = betAmount / sharePrice;
 
       // Create the bet
       const { error: betError } = await supabase
         .from('bets')
         .insert([{
           user_id: user.id,
-          champion_id: selectedChampion,
-          amount: betAmount,
-          odds: odds,
-          is_for: isBettingFor,
+          market_id: selectedMarket,
+          outcome: selectedOutcome,
+          points: betAmount,
+          share_price: sharePrice,
+          shares: shares,
         }]);
 
       if (betError) throw betError;
 
       // Update user's points
       const { error: pointsError } = await supabase
-        .from('users')
+        .from('profiles')
         .update({ points: user.points - betAmount })
-        .eq('id', user.id);
+        .eq('user_id', user.id);
 
       if (pointsError) throw pointsError;
-
-      // Create transaction record
-      const { error: txError } = await supabase
-        .from('transactions')
-        .insert([{
-          user_id: user.id,
-          amount: -betAmount,
-          reason: `Bet ${isBettingFor ? 'for' : 'against'} ${selectedChamp.name}`,
-          meta: {
-            bet_type: isBettingFor ? 'for' : 'against',
-            champion_id: selectedChampion,
-            champion_name: selectedChamp.name,
-            odds: odds,
-          },
-        }]);
-
-      if (txError) throw txError;
 
       toast.success('Bet placed successfully!');
       
       // Refresh data
       await mutateBets();
-      await mutateChampions();
+      await mutateMarkets();
       
       // Force reload user data
       window.location.reload();
       
       setBetAmount(0);
-      setSelectedChampion('');
+      setSelectedMarket('');
+      setSelectedOutcome('');
     } catch (error) {
       console.error('Error placing bet:', error);
       toast.error('Failed to place bet');
@@ -172,59 +140,48 @@ const Bets: React.FC = () => {
 
           <form onSubmit={placeBet} className="mt-5 space-y-4">
             <div>
-              <label htmlFor="champion" className="block text-sm font-medium text-gray-700">
-                Select Champion
+              <label htmlFor="market" className="block text-sm font-medium text-gray-700">
+                Select Market
               </label>
               <select
-                id="champion"
-                value={selectedChampion}
-                onChange={(e) => setSelectedChampion(e.target.value)}
+                id="market"
+                value={selectedMarket}
+                onChange={(e) => {
+                  setSelectedMarket(e.target.value);
+                  setSelectedOutcome('');
+                }}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base py-3"
                 required
               >
-                <option value="">Select a champion</option>
-                {activeChampions.map((champion: Champion) => {
-                  const stats = poolStats.get(champion.id);
-                  const prob = stats?.impliedProbability || 0;
-                  const odds = stats?.decimalOdds || 0;
-                  return (
-                    <option key={champion.id} value={champion.id}>
-                      {champion.name} - {formatProbability(prob)} ({formatDecimalOdds(odds)}x)
-                    </option>
-                  );
-                })}
+                <option value="">Select a market</option>
+                {openMarkets.map((market: Market) => (
+                  <option key={market.id} value={market.id}>
+                    {market.title}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bet Type
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center p-4 min-h-[44px] border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                  <input
-                    type="radio"
-                    checked={isBettingFor}
-                    onChange={() => setIsBettingFor(true)}
-                    className="form-radio h-5 w-5 text-indigo-600"
-                  />
-                  <span className="ml-3 text-base">
-                    <span className="font-semibold">For</span> - Bet this champion will win
-                  </span>
+            {selectedMarket && selectedMarketData && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Outcome
                 </label>
-                <label className="flex items-center p-4 min-h-[44px] border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                  <input
-                    type="radio"
-                    checked={!isBettingFor}
-                    onChange={() => setIsBettingFor(false)}
-                    className="form-radio h-5 w-5 text-indigo-600"
-                  />
-                  <span className="ml-3 text-base">
-                    <span className="font-semibold">Against</span> - Bet this champion won't win
-                  </span>
-                </label>
+                <div className="space-y-2">
+                  {selectedMarketData.outcomes.map((outcome: string) => (
+                    <label key={outcome} className="flex items-center p-4 min-h-[44px] border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                      <input
+                        type="radio"
+                        checked={selectedOutcome === outcome}
+                        onChange={() => setSelectedOutcome(outcome)}
+                        className="form-radio h-5 w-5 text-indigo-600"
+                      />
+                      <span className="ml-3 text-base font-semibold">{outcome}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
@@ -251,7 +208,7 @@ const Bets: React.FC = () => {
               </p>
             </div>
 
-            {selectedChampion && betAmount > 0 && (
+            {selectedMarket && selectedOutcome && betAmount > 0 && (
               <div className="rounded-md bg-indigo-50 p-4 border border-indigo-200">
                 <div className="text-sm space-y-2">
                   <div className="flex justify-between">
@@ -259,16 +216,16 @@ const Bets: React.FC = () => {
                     <span className="font-semibold text-gray-900">${betAmount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Odds:</span>
-                    <span className="font-semibold text-indigo-600">{formatDecimalOdds(getOddsForSelectedChampion())}x</span>
+                    <span className="text-gray-700">Share Price:</span>
+                    <span className="font-semibold text-indigo-600">${getSharePrice().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Shares:</span>
+                    <span className="font-semibold text-indigo-600">{(betAmount / getSharePrice()).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-indigo-200">
-                    <span className="font-medium text-gray-900">Potential Payout:</span>
-                    <span className="font-bold text-green-600">${calculatePayout(betAmount, getOddsForSelectedChampion()).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-600">Profit if you win:</span>
-                    <span className="text-green-600">+${(calculatePayout(betAmount, getOddsForSelectedChampion()) - betAmount).toFixed(2)}</span>
+                    <span className="font-medium text-gray-900">Outcome:</span>
+                    <span className="font-bold text-green-600">{selectedOutcome}</span>
                   </div>
                 </div>
               </div>
@@ -277,7 +234,7 @@ const Bets: React.FC = () => {
             <button
               type="submit"
               className="w-full inline-flex justify-center items-center rounded-lg border border-transparent bg-indigo-600 py-3 px-4 min-h-[44px] text-base font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              disabled={!selectedChampion || betAmount <= 0 || !user || betAmount > user.points || isSubmitting}
+              disabled={!selectedMarket || !selectedOutcome || betAmount <= 0 || !user || betAmount > user.points || isSubmitting}
             >
               {isSubmitting ? 'Placing Bet...' : 'Place Bet'}
             </button>
@@ -296,61 +253,49 @@ const Bets: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {userBets.map((bet: Bet) => {
-                const champion = champions.find((c: Champion) => c.id === bet.championId);
-                const isActive = !bet.isResolved;
-                const championEliminated = champion?.isEliminated;
+                const market = markets.find((m: Market) => m.id === bet.market_id);
+                const isResolved = market?.status === 'resolved';
+                const isWinner = isResolved && market?.result === bet.outcome;
                 
                 return (
                   <div
                     key={bet.id}
                     className={`p-4 border rounded-lg ${
-                      !isActive ? 'bg-gray-50 border-gray-200' : 
-                      championEliminated ? 'bg-red-50 border-red-200' :
-                      'bg-white border-gray-300'
+                      isResolved ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300'
                     }`}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-gray-900">
-                            {champion?.name || 'Unknown'}
+                            {market?.title || 'Unknown Market'}
                           </span>
-                          {championEliminated && isActive && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                              Eliminated
-                            </span>
-                          )}
-                          {champion?.isWinner && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                              Winner
+                          {isResolved && (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              isWinner ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {isWinner ? 'Won' : 'Lost'}
                             </span>
                           )}
                         </div>
                         <div className="mt-1 text-sm text-gray-600">
-                          <span className={bet.isFor ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                            {bet.isFor ? 'For' : 'Against'}
-                          </span>
-                          {' '} • ${bet.amount} @ {formatDecimalOdds(bet.odds)}x odds
+                          <span className="text-indigo-600 font-medium">{bet.outcome}</span>
+                          {' '} • ${bet.points} ({bet.shares.toFixed(2)} shares @ ${bet.share_price.toFixed(2)})
                         </div>
-                        {isActive && (
-                          <div className="mt-1 text-xs text-gray-500">
-                            Potential payout: ${calculatePayout(bet.amount, bet.odds).toFixed(2)}
-                          </div>
-                        )}
-                        {!isActive && bet.payout && (
+                        {bet.payout && (
                           <div className="mt-1 text-sm font-semibold text-green-600">
                             Payout: ${bet.payout.toFixed(2)}
                           </div>
                         )}
                       </div>
                       <div className="text-right">
-                        {isActive ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Active
-                          </span>
-                        ) : (
+                        {isResolved ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             Resolved
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Active
                           </span>
                         )}
                       </div>

@@ -3,21 +3,19 @@ import { supabase } from '../lib/supabase';
 import AdminLayout from '../components/AdminLayout';
 
 interface Stats {
-  totalUsers: number;
-  totalChampions: number;
-  activeChampions: number;
+  totalProfiles: number;
+  totalMarkets: number;
+  openMarkets: number;
   totalBets: number;
-  totalTransactions: number;
   totalPoints: number;
 }
 
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<Stats>({
-    totalUsers: 0,
-    totalChampions: 0,
-    activeChampions: 0,
+    totalProfiles: 0,
+    totalMarkets: 0,
+    openMarkets: 0,
     totalBets: 0,
-    totalTransactions: 0,
     totalPoints: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -29,19 +27,19 @@ const AdminDashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch total users
-      const { count: userCount, error: userError } = await supabase
-        .from('users')
+      // Fetch total profiles
+      const { count: profileCount, error: profileError } = await supabase
+        .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      if (userError) throw userError;
+      if (profileError) throw profileError;
 
-      // Fetch champions stats
-      const { data: champions, error: championError } = await supabase
-        .from('champions')
+      // Fetch markets stats
+      const { data: markets, error: marketError } = await supabase
+        .from('markets')
         .select('*');
 
-      if (championError) throw championError;
+      if (marketError) throw marketError;
 
       // Fetch bets stats
       const { count: betCount, error: betError } = await supabase
@@ -50,28 +48,20 @@ const AdminDashboard: React.FC = () => {
 
       if (betError) throw betError;
 
-      // Fetch transactions stats
-      const { count: transactionCount, error: transactionError } = await supabase
-        .from('transactions')
-        .select('*', { count: 'exact', head: true });
-
-      if (transactionError) throw transactionError;
-
       // Fetch total points
       const { data: pointsData, error: pointsError } = await supabase
-        .from('users')
+        .from('profiles')
         .select('points');
 
       if (pointsError) throw pointsError;
 
-      const totalPoints = pointsData?.reduce((sum, user) => sum + (user.points || 0), 0) || 0;
+      const totalPoints = pointsData?.reduce((sum, profile) => sum + (Number(profile.points) || 0), 0) || 0;
 
       setStats({
-        totalUsers: userCount || 0,
-        totalChampions: champions?.length || 0,
-        activeChampions: champions?.filter(c => !c.is_eliminated).length || 0,
+        totalProfiles: profileCount || 0,
+        totalMarkets: markets?.length || 0,
+        openMarkets: markets?.filter(m => m.status === 'open').length || 0,
         totalBets: betCount || 0,
-        totalTransactions: transactionCount || 0,
         totalPoints,
       });
     } catch (error: any) {
@@ -101,7 +91,7 @@ const AdminDashboard: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Users Card */}
+        {/* Profiles Card */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -112,15 +102,15 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
-                  <dd className="text-lg font-medium text-gray-900">{stats.totalUsers}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Total Profiles</dt>
+                  <dd className="text-lg font-medium text-gray-900">{stats.totalProfiles}</dd>
                 </dl>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Champions Card */}
+        {/* Markets Card */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -131,9 +121,9 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Champions</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">Markets</dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {stats.activeChampions} / {stats.totalChampions} Active
+                    {stats.openMarkets} / {stats.totalMarkets} Open
                   </dd>
                 </dl>
               </div>
@@ -154,25 +144,6 @@ const AdminDashboard: React.FC = () => {
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Total Bets</dt>
                   <dd className="text-lg font-medium text-gray-900">{stats.totalBets}</dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Transactions Card */}
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Transactions</dt>
-                  <dd className="text-lg font-medium text-gray-900">{stats.totalTransactions}</dd>
                 </dl>
               </div>
             </div>

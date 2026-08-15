@@ -5,19 +5,16 @@ import { Transaction } from '../types';
 export function useTransactions(userId?: string) {
   const key = userId ? `transactions-user-${userId}` : 'transactions-all';
   const { data, error, isLoading, mutate } = useSWR(key, async () => {
-    let query = supabase.from('transactions').select('*').order('created_at', { ascending: false });
-    if (userId) query = query.eq('user_id', userId);
-    const { data, error } = await query;
-    if (error) throw error;
-    return (data || []) as Transaction[];
+    // Transactions table doesn't exist in live schema
+    // Return empty array for now
+    return [] as Transaction[];
   }, {
     refreshInterval: 15000,
   });
 
   const addTransaction = async (payload: Omit<Transaction, 'id' | 'createdAt'> & { created_at?: string }) => {
-    const { error } = await supabase.from('transactions').insert([payload]);
-    if (error) throw error;
-    await mutate();
+    // No-op since transactions table doesn't exist in live schema
+    console.log('Transactions table not implemented in live schema');
   };
 
   return {

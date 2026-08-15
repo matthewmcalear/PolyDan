@@ -21,24 +21,19 @@ const UserAdmin: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('*')
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, email, created_at, role')
         .order('created_at', { ascending: false });
 
-      if (usersError) throw usersError;
-
-      const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id');
-
-      if (adminError) throw adminError;
-
-      const adminIds = new Set(adminData.map(admin => admin.id));
+      if (profilesError) throw profilesError;
       
-      setUsers(usersData.map(user => ({
-        ...user,
-        is_admin: adminIds.has(user.id)
+      setUsers((profilesData || []).map(profile => ({
+        id: profile.user_id,
+        email: profile.email,
+        name: profile.display_name,
+        created_at: profile.created_at,
+        is_admin: profile.role === 'admin'
       })));
     } catch (error: any) {
       console.error('Error fetching users:', error);
@@ -50,27 +45,25 @@ const UserAdmin: React.FC = () => {
 
   const deleteUser = async (userId: string) => {
     try {
-      // First remove from admin_users if they are an admin
-      await supabase
-        .from('admin_users')
+      // Delete from profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
         .delete()
-        .eq('id', userId);
+        .eq('user_id', userId);
 
-      // Delete from users table
-      const { error: userError } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', userId);
+      if (profileError) throw profileError;
 
-      if (userError) throw userError;
-
-      // Delete from auth.users through Supabase admin API
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      
-      if (authError) throw authError;
+      // Delete from auth.users through Supabase admin API (requires service role)
+      // Note: This may fail if not using service role key
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (authError) console.error('Could not delete from auth:', authError);
+      } catch (e) {
+        console.error('Auth deletion not available:', e);
+      }
 
       setUsers(users.filter(user => user.id !== userId));
-      toast.success('User deleted successfully');
+      toast.success('User profile deleted successfully');
     } catch (error: any) {
       console.error('Error deleting user:', error);
       toast.error(error.message || 'Failed to delete user');
@@ -79,22 +72,14 @@ const UserAdmin: React.FC = () => {
 
   const toggleAdminStatus = async (user: User) => {
     try {
-      if (user.is_admin) {
-        // Remove admin status
-        const { error } = await supabase
-          .from('admin_users')
-          .delete()
-          .eq('id', user.id);
+      const newRole = user.is_admin ? 'user' : 'admin';
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('user_id', user.id);
 
-        if (error) throw error;
-      } else {
-        // Add admin status
-        const { error } = await supabase
-          .from('admin_users')
-          .insert({ id: user.id });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       setUsers(users.map(u => 
         u.id === user.id 
