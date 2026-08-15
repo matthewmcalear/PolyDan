@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: data.user_id,
         email: data.email,
         name: data.display_name,
-        role: data.role || 'user',
+        role: data.role || 'player',
         points: Number(data.points) || 0,
         created_at: new Date(data.created_at),
         updated_at: new Date(data.updated_at)
@@ -188,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             user_id: data.user.id,
             email,
             display_name: name,
-            role: 'user',
+            role: 'player',
             points: 1000, // Starting bankroll of 1000 fake dollars
             is_eliminated: false,
             on_redemption_island: false

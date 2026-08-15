@@ -81,7 +81,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     Bets
                   </Link>
                 )}
-                {user?.role === 'admin' && (
+                {(user?.role === 'admin' || user?.role === 'commissioner') && (
                   <>
                     <Link
                       to="/admin"
@@ -258,7 +258,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   </Link>
                 ))}
                 
-                {user?.role === 'admin' && (
+                {(user?.role === 'admin' || user?.role === 'commissioner') && (
                   <>
                     <div className="border-t border-gray-200 my-2" />
                     <Link

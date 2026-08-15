@@ -40,9 +40,11 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
+  const isAdmin = user?.role === 'admin' || user?.role === 'commissioner';
+  
   useEffect(() => {
-    console.log('AdminRoute state:', { user, loading, isAdmin: user?.role === 'admin' });
-  }, [user, loading]);
+    console.log('AdminRoute state:', { user, loading, isAdmin });
+  }, [user, loading, isAdmin]);
 
   if (loading) {
     return (
@@ -52,7 +54,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || !isAdmin) {
     console.log('User not authorized for admin route, redirecting to home');
     return <Navigate to="/" replace />;
   }
