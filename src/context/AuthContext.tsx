@@ -52,9 +52,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('Fetching user profile for:', userId);
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('id, email, name, role, points, created_at, updated_at, is_super, is_anonymous')
-        .eq('id', userId)
+        .from('profiles')
+        .select('id, user_id, email, display_name, role, points, created_at, updated_at')
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -79,13 +79,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Convert the data to match our User type
       const userData: User = {
-        ...data,
+        id: data.user_id,
+        email: data.email,
+        name: data.display_name,
+        role: data.role || 'user',
+        points: Number(data.points) || 0,
         created_at: new Date(data.created_at),
-        updated_at: new Date(data.updated_at),
-        role: data.role || 'user', // Default to 'user' if role is not set
-        points: data.points || 0,
-        is_super: data.is_super || false,
-        is_anonymous: data.is_anonymous || false
+        updated_at: new Date(data.updated_at)
       };
 
       console.log('User profile fetched:', userData);
@@ -153,23 +153,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Auth signup successful:', data);
 
       if (data.user) {
-        const userProfile = {
-          id: data.user.id,
-          email,
-          name,
-          role: 'user',
-          points: 1000, // Starting bankroll of 1000 fake dollars
-          is_super: false,
-          is_anonymous: false
-        };
+        console.log('Attempting to create/update user profile for:', data.user.id);
         
-        console.log('Attempting to create user profile:', userProfile);
-        
-        // First, check if the user profile already exists
+        // First, check if the profile already exists (by user_id)
         const { data: existingProfile, error: fetchError } = await supabase
-          .from('users')
+          .from('profiles')
           .select('*')
-          .eq('id', data.user.id)
+          .eq('user_id', data.user.id)
           .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means no rows returned
@@ -178,12 +168,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (existingProfile) {
-          console.log('User profile already exists:', existingProfile);
-          // Update the existing profile
+          console.log('Profile already exists:', existingProfile);
+          // Update display_name only, preserve existing role and points
           const { error: updateError, data: updatedProfile } = await supabase
-            .from('users')
-            .update(userProfile)
-            .eq('id', data.user.id)
+            .from('profiles')
+            .update({ display_name: name })
+            .eq('user_id', data.user.id)
             .select()
             .single();
 
@@ -194,9 +184,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('Profile updated successfully:', updatedProfile);
         } else {
           // Create new profile
-          const { error: insertError, data: newProfile } = await supabase
-            .from('users')
-            .insert([userProfile])
+          const newProfile = {
+            user_id: data.user.id,
+            email,
+            display_name: name,
+            role: 'user',
+            points: 1000, // Starting bankroll of 1000 fake dollars
+            is_eliminated: false,
+            on_redemption_island: false
+          };
+
+          const { error: insertError, data: createdProfile } = await supabase
+            .from('profiles')
+            .insert([newProfile])
             .select()
             .single();
 
@@ -210,7 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             throw new Error('Failed to create user profile: ' + insertError.message);
           }
-          console.log('Profile created successfully:', newProfile);
+          console.log('Profile created successfully:', createdProfile);
         }
       } else {
         throw new Error('No user data returned from signup');

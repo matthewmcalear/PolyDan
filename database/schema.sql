@@ -1,144 +1,87 @@
--- Core schema for PolyDan v2.0
--- Run this inside Supabase or Heroku Postgres
+-- LIVE SCHEMA DOCUMENTATION for PolyDan
+-- This documents the actual live Lovable Supabase schema (sgumgwxcntdefrocpuoh)
+-- DO NOT apply this file - it describes existing production tables
 
--- Drop existing triggers if they exist
-DROP TRIGGER IF EXISTS trg_update_timestamp ON users;
-DROP TRIGGER IF EXISTS trg_update_timestamp_champions ON champions;
-DROP TRIGGER IF EXISTS trg_update_timestamp_bets ON bets;
-DROP TRIGGER IF EXISTS trg_update_timestamp_side_bets ON side_bets;
+-- NOTE: The tables below already exist in production.
+-- The original schema.sql (users, champions, side_bets, transactions, ious) was NEVER applied.
+-- This file is for documentation purposes only.
 
--- USERS ---------------------------------------------------------
-create table if not exists users (
+-- PROFILES (User/Profile Table) --------------------------------
+-- This is the main user table. Auth user IDs are stored in user_id.
+create table if not exists profiles (
   id uuid primary key default gen_random_uuid(),
-  email text unique not null,
-  name text not null,
-  role text not null default 'user', -- 'user' | 'admin'
-  points numeric not null default 0,
-  is_super boolean not null default false,
-  is_anonymous boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
--- CHAMPIONS -----------------------------------------------------
-create table if not exists champions (
-  id uuid primary key default gen_random_uuid(),
-  name text not null unique,
+  user_id uuid not null unique, -- References auth.users.id
+  email text not null,
+  display_name text not null, -- Shown as "name" in the UI
+  photo_url text,
+  points numeric not null default 1000,
+  role text not null default 'user', -- 'admin' | 'user'
   is_eliminated boolean not null default false,
-  is_winner boolean not null default false,
-  has_redemption_chance boolean not null default false,
-  is_redeemed boolean not null default false,
+  on_redemption_island boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
--- BETS ----------------------------------------------------------
-create table if not exists bets (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references users(id) on delete cascade,
-  champion_id uuid references champions(id) on delete cascade,
-  amount numeric not null check (amount > 0),
-  odds numeric not null check (odds > 0),
-  is_for boolean not null, -- true = "Yes", false = "No"
-  is_resolved boolean not null default false,
-  payout numeric,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  resolved_at timestamptz
-);
-
--- SIDE BETS -----------------------------------------------------
-create table if not exists side_bets (
+-- MARKETS (Prediction Markets) ---------------------------------
+-- Stores all markets including the champion "Who will win?" market
+create table if not exists markets (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   description text,
-  created_by uuid references users(id) on delete set null,
-  is_resolved boolean not null default false,
+  outcomes text[] not null, -- Array of outcome strings (e.g., player names)
+  status text not null default 'open', -- 'open' | 'resolved' | 'cancelled'
+  result text, -- Winning outcome when resolved
+  is_champion boolean not null default false, -- True for the main "Who wins?" market
+  champion_player_id uuid, -- Optional link to a profile
+  created_by uuid, -- Profile user_id
+  resolved_by uuid, -- Profile user_id
+  resolved_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  resolved_at timestamptz
+  outcome_prices jsonb, -- Optional pricing data
+  market_type text not null default 'multi' -- 'multi' | 'binary'
 );
 
-create table if not exists side_bet_options (
+-- BETS (Share-based bets) --------------------------------------
+-- Bets are share-based: users buy shares of outcomes at a share_price
+create table if not exists bets (
   id uuid primary key default gen_random_uuid(),
-  side_bet_id uuid references side_bets(id) on delete cascade,
-  description text not null,
-  is_correct boolean not null default false
-);
-
-create table if not exists side_bet_wagers (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references users(id) on delete cascade,
-  side_bet_id uuid references side_bets(id) on delete cascade,
-  option_id uuid references side_bet_options(id) on delete cascade,
-  amount numeric not null check (amount > 0),
-  odds numeric not null,
-  is_resolved boolean not null default false,
-  payout numeric,
-  created_at timestamptz not null default now(),
-  resolved_at timestamptz
-);
-
--- TRANSACTIONS --------------------------------------------------
-create table if not exists transactions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references users(id) on delete cascade,
-  amount numeric not null, -- positive = credit, negative = debit
-  reason text not null,
-  meta jsonb,
+  user_id uuid not null, -- Auth user ID (profiles.user_id)
+  market_id uuid not null, -- References markets.id
+  outcome text not null, -- The outcome being bet on
+  points numeric not null check (points > 0), -- Amount of points spent
+  share_price numeric not null check (share_price > 0),
+  shares numeric not null check (shares > 0),
+  payout numeric, -- Set when market resolves
   created_at timestamptz not null default now()
 );
 
--- IOUS ----------------------------------------------------------
-create table if not exists ious (
+-- GAMES (Empty in production, RLS-protected) ------------------
+-- Exists but not currently used
+create table if not exists games (
   id uuid primary key default gen_random_uuid(),
-  from_user_id uuid references users(id) on delete cascade,
-  to_user_id uuid references users(id) on delete cascade,
-  amount numeric not null check (amount > 0),
-  description text,
-  is_settled boolean not null default false,
-  created_at timestamptz not null default now(),
-  settled_at timestamptz
+  created_at timestamptz not null default now()
 );
 
--- REDEMPTION ISLAND --------------------------------------------
-create table if not exists redemption_challenges (
-  id uuid primary key default gen_random_uuid(),
-  champion_id uuid references champions(id) on delete cascade,
-  round integer not null,
-  is_won boolean not null default false,
-  created_at timestamptz not null default now(),
-  resolved_at timestamptz
-);
-
--- TRIGGERS ------------------------------------------------------
--- Keep updated_at current
-create or replace function update_timestamp()
-returns trigger as $$
-begin
-  NEW.updated_at = now();
-  return NEW;
-end;
-$$ language plpgsql;
-
-create trigger trg_update_timestamp
-before update on users
-for each row execute procedure update_timestamp();
-
-create trigger trg_update_timestamp_champions
-before update on champions
-for each row execute procedure update_timestamp();
-
-create trigger trg_update_timestamp_bets
-before update on bets
-for each row execute procedure update_timestamp();
-
-create trigger trg_update_timestamp_side_bets
-before update on side_bets
-for each row execute procedure update_timestamp();
-
--- Indexes for quicker lookups ----------------------------------
+-- INDEXES -------------------------------------------------------
 create index if not exists idx_bets_user on bets(user_id);
-create index if not exists idx_bets_champion on bets(champion_id);
-create index if not exists idx_ious_from on ious(from_user_id);
-create index if not exists idx_ious_to on ious(to_user_id); 
+create index if not exists idx_bets_market on bets(market_id);
+create index if not exists idx_profiles_user on profiles(user_id);
+create index if not exists idx_markets_status on markets(status);
+
+-- NOTES ---------------------------------------------------------
+-- Tables that DO NOT exist in production:
+--   - users (replaced by profiles)
+--   - champions (replaced by markets)
+--   - side_bets, side_bet_options, side_bet_wagers
+--   - transactions
+--   - ious
+--   - competitions
+--   - redemption_challenges
+--   - admin_users
+--
+-- Key mappings:
+--   - User.id in code = profiles.user_id (the auth user ID)
+--   - Champion/player names are stored in markets.outcomes[]
+--   - The champion market has is_champion = true
+--   - Bets are share-based with outcome, shares, share_price 

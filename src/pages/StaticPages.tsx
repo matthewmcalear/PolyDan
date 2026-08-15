@@ -7,19 +7,20 @@ import { User, SideBet } from '../types';
 
 const fetchLeaderboard = async (): Promise<User[]> => {
   const { data, error } = await supabase
-    .from('users')
-    .select('id, name, points, role')
+    .from('profiles')
+    .select('user_id, display_name, points, role, email, created_at, updated_at')
     .order('points', { ascending: false });
 
   if (error) throw error;
   return (
-    data?.map((u) => ({
-      ...u,
-      created_at: new Date(),
-      updated_at: new Date(),
-      email: '',
-      is_super: false,
-      is_anonymous: false,
+    data?.map((p) => ({
+      id: p.user_id,
+      name: p.display_name,
+      email: p.email,
+      points: Number(p.points),
+      role: p.role,
+      created_at: new Date(p.created_at),
+      updated_at: new Date(p.updated_at),
     })) as unknown as User[]
   );
 };
@@ -97,22 +98,9 @@ const LeaderboardTable: React.FC = () => {
 /* ---------------------------------- SIDE BETS ---------------------------------- */
 
 const fetchSideBets = async (): Promise<SideBet[]> => {
-  const { data, error } = await supabase
-    .from('side_bets')
-    .select('id, title, description, is_resolved')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return (
-    data?.map((sb) => ({
-      ...sb,
-      createdBy: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      resolvedAt: undefined,
-      options: [],
-    })) as unknown as SideBet[]
-  );
+  // Side bets table doesn't exist in live schema, return empty array
+  // In the future, this could use markets with market_type != 'champion'
+  return [];
 };
 
 export const SideBets: React.FC = () => (

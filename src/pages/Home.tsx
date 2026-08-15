@@ -2,22 +2,26 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useAuth } from '../context/AuthContext';
-import { useChampions } from '../hooks/useChampions';
+import { useMarkets } from '../hooks/useMarkets';
 import { useBets } from '../hooks/useBets';
 import { supabase } from '../lib/supabase';
-import { User, Champion, Bet } from '../types';
+import { User, Market, Bet } from '../types';
 import { calculatePoolOdds, formatProbability, formatDecimalOdds } from '../utils/odds';
 
 const fetchLeaderboard = async (): Promise<User[]> => {
   const { data, error } = await supabase
-    .from('users')
-    .select('id, name, points, email, role, created_at, updated_at, is_super, is_anonymous')
+    .from('profiles')
+    .select('user_id, display_name, points, email, role, created_at, updated_at')
     .order('points', { ascending: false })
     .limit(5);
 
   if (error) throw error;
   return (data || []).map((u) => ({
-    ...u,
+    id: u.user_id,
+    name: u.display_name,
+    email: u.email,
+    role: u.role,
+    points: Number(u.points),
     created_at: new Date(u.created_at),
     updated_at: new Date(u.updated_at),
   })) as User[];
@@ -25,27 +29,27 @@ const fetchLeaderboard = async (): Promise<User[]> => {
 
 const Home: React.FC = () => {
   const { user } = useAuth();
-  const { champions, isLoading: championsLoading } = useChampions();
+  const { markets, isLoading: marketsLoading } = useMarkets({ championOnly: true });
   const { bets, isLoading: betsLoading } = useBets();
   const { data: leaderboard, isLoading: leaderboardLoading } = useSWR('leaderboard-home', fetchLeaderboard);
 
-  const activeChampions = champions.filter((c: Champion) => !c.isEliminated);
-  const activeChampionIds = activeChampions.map((c: Champion) => c.id);
+  // Get the champion market (the "Who wins?" market)
+  const championMarket = markets.find((m: Market) => m.is_champion && m.status === 'open');
+  const outcomes = championMarket?.outcomes || [];
   
-  // Calculate pool-based odds for all active champions
-  const poolStats = calculatePoolOdds(
-    bets.map((b: Bet) => ({ championId: b.championId, amount: b.amount, isFor: b.isFor })),
-    activeChampionIds
-  );
-
-  // Sort champions by implied probability (favorites first)
-  const sortedChampions = [...activeChampions].sort((a, b) => {
-    const aProb = poolStats.get(a.id)?.impliedProbability || 0;
-    const bProb = poolStats.get(b.id)?.impliedProbability || 0;
-    return bProb - aProb;
+  // Calculate simple pool stats per outcome
+  const outcomeStats = outcomes.map(outcome => {
+    const outcomeBets = championMarket 
+      ? bets.filter((b: Bet) => b.market_id === championMarket.id && b.outcome === outcome)
+      : [];
+    const totalPoints = outcomeBets.reduce((sum, b) => sum + b.points, 0);
+    return { outcome, totalPoints };
   });
 
-  const loading = championsLoading || betsLoading || leaderboardLoading;
+  // Sort by total points (most popular first)
+  const sortedOutcomes = [...outcomeStats].sort((a, b) => b.totalPoints - a.totalPoints);
+
+  const loading = marketsLoading || betsLoading || leaderboardLoading;
 
   return (
     <div className="space-y-6">
@@ -97,22 +101,22 @@ const Home: React.FC = () => {
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
-          ) : activeChampions.length === 0 ? (
-            <p className="text-gray-500 text-sm py-4">No active champions yet. Check back soon!</p>
+          ) : !championMarket || outcomes.length === 0 ? (
+            <p className="text-gray-500 text-sm py-4">No active champion market yet. Check back soon!</p>
           ) : (
             <div className="space-y-3">
-              {sortedChampions.map((champion) => {
-                const stats = poolStats.get(champion.id);
-                const probability = stats?.impliedProbability || 0;
-                const odds = stats?.decimalOdds || 0;
+              {sortedOutcomes.map(({ outcome, totalPoints }) => {
+                const totalPool = outcomeStats.reduce((sum, s) => sum + s.totalPoints, 0);
+                const probability = totalPool > 0 ? totalPoints / totalPool : 1 / outcomes.length;
+                const odds = probability > 0 ? 1 / probability : 0;
                 
                 return (
                   <div
-                    key={champion.id}
+                    key={outcome}
                     className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition"
                   >
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900">{champion.name}</div>
+                      <div className="font-semibold text-gray-900">{outcome}</div>
                       <div className="text-xs text-gray-500">
                         {formatProbability(probability)} chance
                       </div>
@@ -129,10 +133,10 @@ const Home: React.FC = () => {
             </div>
           )}
 
-          {activeChampions.length > 0 && (
+          {championMarket && outcomes.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-200">
               <p className="text-xs text-gray-500 mb-2">
-                <strong>{activeChampions.length}</strong> champions remain in the competition
+                <strong>{outcomes.length}</strong> players remain in the competition
               </p>
               {user && (
                 <Link
