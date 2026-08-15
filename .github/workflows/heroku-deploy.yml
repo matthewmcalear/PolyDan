@@ -29,5 +29,5 @@ jobs:
         env:
           HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
         run: |
-          heroku git:remote -a polydan-1f195a22e2e0
+          heroku git:remote -a polydan
           git push heroku HEAD:main 
