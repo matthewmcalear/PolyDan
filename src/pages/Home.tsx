@@ -6,7 +6,7 @@ import { useMarkets } from '../hooks/useMarkets';
 import { useBets } from '../hooks/useBets';
 import { supabase } from '../lib/supabase';
 import { User, Market, Bet } from '../types';
-import { calculatePoolOdds, formatProbability, formatDecimalOdds } from '../utils/odds';
+import { formatProbability, formatDecimalOdds } from '../utils/odds';
 
 const fetchLeaderboard = async (): Promise<User[]> => {
   const { data, error } = await supabase
@@ -38,11 +38,11 @@ const Home: React.FC = () => {
   const outcomes = championMarket?.outcomes || [];
   
   // Calculate simple pool stats per outcome
-  const outcomeStats = outcomes.map(outcome => {
+  const outcomeStats = outcomes.map((outcome: string) => {
     const outcomeBets = championMarket 
       ? bets.filter((b: Bet) => b.market_id === championMarket.id && b.outcome === outcome)
       : [];
-    const totalPoints = outcomeBets.reduce((sum, b) => sum + b.points, 0);
+    const totalPoints = outcomeBets.reduce((sum: number, b: Bet) => sum + b.points, 0);
     return { outcome, totalPoints };
   });
 
@@ -106,7 +106,7 @@ const Home: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {sortedOutcomes.map(({ outcome, totalPoints }) => {
-                const totalPool = outcomeStats.reduce((sum, s) => sum + s.totalPoints, 0);
+                const totalPool = outcomeStats.reduce((sum: number, s: { outcome: string; totalPoints: number }) => sum + s.totalPoints, 0);
                 const probability = totalPool > 0 ? totalPoints / totalPool : 1 / outcomes.length;
                 const odds = probability > 0 ? 1 / probability : 0;
                 

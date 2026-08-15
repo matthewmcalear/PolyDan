@@ -14,15 +14,6 @@ const mapBet = (row: any): Bet => ({
   created_at: new Date(row.created_at),
 });
 
-const fetchBets = async (): Promise<Bet[]> => {
-  const { data, error } = await supabase
-    .from('bets')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return (data || []).map(mapBet);
-};
-
 interface UseBetsOptions {
   userId?: string;
   marketId?: string;

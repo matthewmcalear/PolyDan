@@ -20,15 +20,6 @@ const mapMarket = (row: any): Market => ({
   market_type: row.market_type,
 });
 
-const fetchMarkets = async (): Promise<Market[]> => {
-  const { data, error } = await supabase
-    .from('markets')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return (data || []).map(mapMarket);
-};
-
 export function useMarkets(options: { championOnly?: boolean } = {}) {
   const key = options.championOnly ? 'markets-champion' : 'markets-all';
   const { data, error, isLoading, mutate } = useSWR(key, async () => {

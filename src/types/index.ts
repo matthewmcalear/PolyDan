@@ -54,6 +54,9 @@ export interface Bet {
   created_at: Date;
 }
 
+// Side bets, wagers, transactions, and IOUs don't exist in live schema
+// Keeping minimal interfaces for compatibility with existing code that references them
+
 export interface SideBet {
   id: string;
   title: string;
@@ -62,7 +65,6 @@ export interface SideBet {
   createdAt: Date;
   updatedAt: Date;
   resolvedAt?: Date;
-  isResolved: boolean;
   options: SideBetOption[];
 }
 
@@ -82,7 +84,6 @@ export interface SideBetWager {
   odds: number;
   createdAt: Date;
   resolvedAt?: Date;
-  isResolved: boolean;
   payout?: number;
 }
 
