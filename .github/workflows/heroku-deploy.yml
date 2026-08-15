@@ -29,7 +29,12 @@ jobs:
         env:
           HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
         run: |
-          HEROKU_EMAIL=$(curl -s -n -H "Authorization: Bearer ${HEROKU_API_KEY}" https://api.heroku.com/account | jq -r '.email')
+          HEROKU_EMAIL=$(curl -s -H "Authorization: Bearer ${HEROKU_API_KEY}" -H "Accept: application/vnd.heroku+json; version=3" https://api.heroku.com/account | jq -r '.email')
+          echo "Retrieved email: ${HEROKU_EMAIL}"
+          if [ -z "$HEROKU_EMAIL" ] || [ "$HEROKU_EMAIL" = "null" ]; then
+            echo "ERROR: Could not retrieve email from Heroku API"
+            exit 1
+          fi
           cat > ~/.netrc <<EOF
           machine api.heroku.com
             login ${HEROKU_EMAIL}
@@ -39,5 +44,6 @@ jobs:
             password ${HEROKU_API_KEY}
           EOF
           chmod 600 ~/.netrc
+          cat ~/.netrc
           heroku git:remote -a polydan
           git push heroku HEAD:main 
