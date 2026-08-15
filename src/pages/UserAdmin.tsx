@@ -72,7 +72,7 @@ const UserAdmin: React.FC = () => {
 
   const toggleAdminStatus = async (user: User) => {
     try {
-      const newRole = user.is_admin ? 'user' : 'admin';
+      const newRole = user.is_admin ? 'player' : 'admin';
       
       const { error } = await supabase
         .from('profiles')
