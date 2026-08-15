@@ -29,5 +29,14 @@ jobs:
         env:
           HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
         run: |
-          git remote add heroku "https://:${HEROKU_API_KEY}@git.heroku.com/polydan.git" || git remote set-url heroku "https://:${HEROKU_API_KEY}@git.heroku.com/polydan.git"
+          cat > ~/.netrc <<EOF
+          machine git.heroku.com
+            login 
+            password ${HEROKU_API_KEY}
+          machine api.heroku.com
+            login 
+            password ${HEROKU_API_KEY}
+          EOF
+          chmod 600 ~/.netrc
+          heroku git:remote -a polydan
           git push heroku HEAD:main 
