@@ -124,12 +124,7 @@ const SideBetList: React.FC = () => {
       {sideBets.map((sb: SideBet) => (
         <li key={sb.id} className="py-3">
           <h3 className="font-medium text-gray-900 flex items-center gap-2">
-            {sb.title}{' '}
-            {sb.isResolved && (
-              <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                Resolved
-              </span>
-            )}
+            {sb.title}
           </h3>
           {sb.description && <p className="text-sm text-gray-600 mt-1">{sb.description}</p>}
         </li>

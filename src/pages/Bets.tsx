@@ -5,7 +5,6 @@ import { useMarkets } from '../hooks/useMarkets';
 import { useBets } from '../hooks/useBets';
 import { Market, Bet } from '../types';
 import { supabase } from '../lib/supabase';
-import { formatProbability, formatDecimalOdds } from '../utils/odds';
 
 const Bets: React.FC = () => {
   const { user } = useAuth();
@@ -120,8 +119,8 @@ const Bets: React.FC = () => {
             <p className="text-xs text-indigo-200 mt-1">fake dollars</p>
           </div>
           <div className="text-right">
-            <p className="text-sm font-medium text-indigo-100">Active Bets</p>
-            <p className="text-2xl font-bold">{userBets.filter((b: Bet) => !b.isResolved).length}</p>
+            <p className="text-sm font-medium text-indigo-100">Total Bets</p>
+            <p className="text-2xl font-bold">{userBets.length}</p>
           </div>
         </div>
       </div>
