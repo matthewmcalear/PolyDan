@@ -1,0 +1,156 @@
+@import 'tailwindcss';
+
+/* Iron Man palette (from sslgolf.com/iron-man.html): ink, plate, gold,
+   garnet. Dark is the signature look; light is parchment. Every colour is a
+   token so components never hard-code a mode. */
+
+:root {
+  color-scheme: light;
+  --bg: #f4efe3;
+  --surface: #fffdf8;
+  --surface-2: #f3ecdc;
+  --line: rgba(110, 86, 30, 0.18);
+  --line-strong: rgba(110, 86, 30, 0.34);
+  --ink: #1d1810;
+  --ink-2: #50483a;
+  --muted: #7a715c;
+  --gold: #8a6a1c;
+  --gold-hi: #b48c2c;
+  --on-gold: #fffaf0;
+  --garnet: #a53a30;
+  --yes: #1d7a45;
+  --yes-soft: rgba(29, 122, 69, 0.1);
+  --no: #b13b31;
+  --no-soft: rgba(177, 59, 49, 0.09);
+  --island: #2d6fa3;
+  --island-soft: rgba(45, 111, 163, 0.1);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --grid: #e7dfcc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light'])) {
+    color-scheme: dark;
+    --bg: #110f0a;
+    --surface: #1f1b14;
+    --surface-2: #2c261d;
+    --line: rgba(222, 190, 120, 0.2);
+    --line-strong: rgba(222, 190, 120, 0.38);
+    --ink: #f3ede0;
+    --ink-2: #d6ccb4;
+    --muted: #ada389;
+    --gold: #d4ad57;
+    --gold-hi: #ebd08a;
+    --on-gold: #1b160d;
+    --garnet: #e6887b;
+    --yes: #5cc98a;
+    --yes-soft: rgba(92, 201, 138, 0.15);
+    --no: #ec8a7e;
+    --no-soft: rgba(236, 138, 126, 0.15);
+    --island: #6aa9dc;
+    --island-soft: rgba(106, 169, 220, 0.12);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --grid: #332c21;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-gold-hi: var(--gold-hi);
+  --color-on-gold: var(--on-gold);
+  --color-garnet: var(--garnet);
+  --color-yes: var(--yes);
+  --color-yes-soft: var(--yes-soft);
+  --color-no: var(--no);
+  --color-no-soft: var(--no-soft);
+  --color-island: var(--island);
+  --color-island-soft: var(--island-soft);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-oswald), var(--font-inter), sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Section heading in the stats-page style: uppercase Oswald with tracking. */
+  .eyebrow {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .field {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    color: var(--ink);
+  }
+  .field:focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 8px;
+    padding: 0.55rem 0.95rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: filter 0.15s, opacity 0.15s;
+  }
+  .btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-gold {
+    background: var(--gold);
+    color: var(--on-gold);
+  }
+  .btn-ghost {
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+  }
+  .btn-danger {
+    border: 1px solid var(--no);
+    color: var(--no);
+  }
+}

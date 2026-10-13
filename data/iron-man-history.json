@@ -1,0 +1,1716 @@
+{
+ "meta": {
+  "editions": 9,
+  "competitors": 42,
+  "firstdate": "2022-06",
+  "lastdate": "2026/06"
+ },
+ "leaderboard": [
+  {
+   "name": "Megan",
+   "ev": 9,
+   "wins": 2,
+   "t3": 6,
+   "t5": 7,
+   "tot": 106.0,
+   "avgpct": 0.307,
+   "best": 1,
+   "runner": 3,
+   "tophalf": 0.778
+  },
+  {
+   "name": "Jack",
+   "ev": 9,
+   "wins": 3,
+   "t3": 4,
+   "t5": 5,
+   "tot": 103.0,
+   "avgpct": 0.327,
+   "best": 1,
+   "runner": 0,
+   "tophalf": 0.667
+  },
+  {
+   "name": "Jody",
+   "ev": 7,
+   "wins": 2,
+   "t3": 3,
+   "t5": 3,
+   "tot": 78.0,
+   "avgpct": 0.318,
+   "best": 1,
+   "runner": 1,
+   "tophalf": 0.714
+  },
+  {
+   "name": "Tyler",
+   "ev": 8,
+   "wins": 0,
+   "t3": 1,
+   "t5": 2,
+   "tot": 77.0,
+   "avgpct": 0.448,
+   "best": 3,
+   "runner": 0,
+   "tophalf": 0.625
+  },
+  {
+   "name": "Laura",
+   "ev": 8,
+   "wins": 1,
+   "t3": 2,
+   "t5": 3,
+   "tot": 75.0,
+   "avgpct": 0.465,
+   "best": 1,
+   "runner": 0,
+   "tophalf": 0.625
+  },
+  {
+   "name": "Peter",
+   "ev": 8,
+   "wins": 0,
+   "t3": 0,
+   "t5": 2,
+   "tot": 71.0,
+   "avgpct": 0.495,
+   "best": 5,
+   "runner": 0,
+   "tophalf": 0.625
+  },
+  {
+   "name": "Erin",
+   "ev": 7,
+   "wins": 0,
+   "t3": 2,
+   "t5": 2,
+   "tot": 70.0,
+   "avgpct": 0.439,
+   "best": 3,
+   "runner": 0,
+   "tophalf": 0.571
+  },
+  {
+   "name": "Tom",
+   "ev": 8,
+   "wins": 1,
+   "t3": 2,
+   "t5": 3,
+   "tot": 70.0,
+   "avgpct": 0.481,
+   "best": 1,
+   "runner": 1,
+   "tophalf": 0.625
+  },
+  {
+   "name": "Sam",
+   "ev": 8,
+   "wins": 0,
+   "t3": 1,
+   "t5": 3,
+   "tot": 69.0,
+   "avgpct": 0.505,
+   "best": 3,
+   "runner": 0,
+   "tophalf": 0.375
+  },
+  {
+   "name": "Matt",
+   "ev": 5,
+   "wins": 0,
+   "t3": 2,
+   "t5": 3,
+   "tot": 53.0,
+   "avgpct": 0.418,
+   "best": 2,
+   "runner": 2,
+   "tophalf": 0.6
+  },
+  {
+   "name": "Dan",
+   "ev": 8,
+   "wins": 0,
+   "t3": 1,
+   "t5": 2,
+   "tot": 53.0,
+   "avgpct": 0.66,
+   "best": 2,
+   "runner": 1,
+   "tophalf": 0.25
+  },
+  {
+   "name": "Doug",
+   "ev": 4,
+   "wins": 0,
+   "t3": 1,
+   "t5": 3,
+   "tot": 48.0,
+   "avgpct": 0.358,
+   "best": 3,
+   "runner": 0,
+   "tophalf": 0.75
+  },
+  {
+   "name": "Erik",
+   "ev": 7,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 47.0,
+   "avgpct": 0.654,
+   "best": 6,
+   "runner": 0,
+   "tophalf": 0.286
+  },
+  {
+   "name": "Nick N",
+   "ev": 4,
+   "wins": 0,
+   "t3": 1,
+   "t5": 1,
+   "tot": 42.0,
+   "avgpct": 0.403,
+   "best": 3,
+   "runner": 0,
+   "tophalf": 0.75
+  },
+  {
+   "name": "Nick C",
+   "ev": 3,
+   "wins": 0,
+   "t3": 0,
+   "t5": 1,
+   "tot": 33.0,
+   "avgpct": 0.379,
+   "best": 5,
+   "runner": 0,
+   "tophalf": 0.667
+  },
+  {
+   "name": "Joey",
+   "ev": 4,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 29.0,
+   "avgpct": 0.519,
+   "best": 6,
+   "runner": 0,
+   "tophalf": 0.25
+  },
+  {
+   "name": "Ezra",
+   "ev": 4,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 28.0,
+   "avgpct": 0.635,
+   "best": 7,
+   "runner": 0,
+   "tophalf": 0.5
+  },
+  {
+   "name": "Sean",
+   "ev": 4,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 28.0,
+   "avgpct": 0.659,
+   "best": 9,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Sophie CB",
+   "ev": 4,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 22.0,
+   "avgpct": 0.75,
+   "best": 13,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Kevin",
+   "ev": 4,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 21.0,
+   "avgpct": 0.743,
+   "best": 11,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Sophie T",
+   "ev": 2,
+   "wins": 0,
+   "t3": 0,
+   "t5": 1,
+   "tot": 20.0,
+   "avgpct": 0.404,
+   "best": 4,
+   "runner": 0,
+   "tophalf": 0.5
+  },
+  {
+   "name": "Yakau",
+   "ev": 4,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 19.0,
+   "avgpct": 0.728,
+   "best": 6,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Alex S",
+   "ev": 2,
+   "wins": 0,
+   "t3": 0,
+   "t5": 1,
+   "tot": 18.0,
+   "avgpct": 0.442,
+   "best": 5,
+   "runner": 0,
+   "tophalf": 0.5
+  },
+  {
+   "name": "Cam",
+   "ev": 1,
+   "wins": 0,
+   "t3": 1,
+   "t5": 1,
+   "tot": 16.0,
+   "avgpct": 0.1,
+   "best": 2,
+   "runner": 1,
+   "tophalf": 1
+  },
+  {
+   "name": "Ben",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 1,
+   "tot": 14.0,
+   "avgpct": 0.2,
+   "best": 4,
+   "runner": 0,
+   "tophalf": 1
+  },
+  {
+   "name": "Evie",
+   "ev": 2,
+   "wins": 0,
+   "t3": 0,
+   "t5": 1,
+   "tot": 14.0,
+   "avgpct": 0.592,
+   "best": 4,
+   "runner": 0,
+   "tophalf": 0.5
+  },
+  {
+   "name": "Sarah M",
+   "ev": 3,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 13.0,
+   "avgpct": 0.784,
+   "best": 9,
+   "runner": 0,
+   "tophalf": 0.333
+  },
+  {
+   "name": "Chris",
+   "ev": 2,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 11.0,
+   "avgpct": 0.742,
+   "best": 8,
+   "runner": 0,
+   "tophalf": 0.5
+  },
+  {
+   "name": "Alan",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 9.0,
+   "avgpct": 0.417,
+   "best": 10,
+   "runner": 0,
+   "tophalf": 1
+  },
+  {
+   "name": "Ben S",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 8.0,
+   "avgpct": 0.467,
+   "best": 7,
+   "runner": 0,
+   "tophalf": 1
+  },
+  {
+   "name": "Strands",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 7.0,
+   "avgpct": 0.533,
+   "best": 8,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Kiera",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 7.0,
+   "avgpct": 0.75,
+   "best": 18,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Mira",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 7.0,
+   "avgpct": 0.789,
+   "best": 15,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Karo",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 6.0,
+   "avgpct": 0.667,
+   "best": 10,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Olivia",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 6.0,
+   "avgpct": 0.667,
+   "best": 10,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Nathalie",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 5.0,
+   "avgpct": 0.895,
+   "best": 17,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Emma G",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 3.0,
+   "avgpct": 0.933,
+   "best": 14,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Alia",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 2.0,
+   "avgpct": 0.867,
+   "best": 13,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Sarah",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 2.0,
+   "avgpct": 0.867,
+   "best": 13,
+   "runner": 0,
+   "tophalf": null
+  },
+  {
+   "name": "Emma N",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 1.0,
+   "avgpct": 0.933,
+   "best": 14,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Hitesh",
+   "ev": 1,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 1.0,
+   "avgpct": 0.944,
+   "best": 17,
+   "runner": 0,
+   "tophalf": 0
+  },
+  {
+   "name": "Sarah Y",
+   "ev": 2,
+   "wins": 0,
+   "t3": 0,
+   "t5": 0,
+   "tot": 0,
+   "avgpct": 1.0,
+   "best": 11,
+   "runner": 0,
+   "tophalf": 0
+  }
+ ],
+ "champions": [
+  {
+   "event": 1,
+   "date": "2022-06-01 00:00:00",
+   "N": 11,
+   "champ": "Jody"
+  },
+  {
+   "event": 2,
+   "date": "2022-11-01 00:00:00",
+   "N": 15,
+   "champ": "Jody"
+  },
+  {
+   "event": 3,
+   "date": "2023-06-01 00:00:00",
+   "N": 15,
+   "champ": "Tom"
+  },
+  {
+   "event": 4,
+   "date": "2023-11-01 00:00:00",
+   "N": 19,
+   "champ": "Jack"
+  },
+  {
+   "event": 5,
+   "date": "2024-06-01 00:00:00",
+   "N": 18,
+   "champ": "Megan"
+  },
+  {
+   "event": 6,
+   "date": "2024-12-01 00:00:00",
+   "N": 24,
+   "champ": "Laura"
+  },
+  {
+   "event": 7,
+   "date": "2025-06-01 00:00:00",
+   "N": 20,
+   "champ": "Jack"
+  },
+  {
+   "event": 8,
+   "date": "2025-11-01 00:00:00",
+   "N": 18,
+   "champ": "Jack"
+  },
+  {
+   "event": 9,
+   "date": "2026/06",
+   "N": 15,
+   "champ": "Megan"
+  }
+ ],
+ "editions": [
+  {
+   "n": 1,
+   "date": "2022-06-01 00:00:00",
+   "N": 11,
+   "champ": "Jody",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Jody",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 2,
+     "name": "Megan",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 3,
+     "name": "Sam",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Tom",
+     "tot": 8.0,
+     "offri": 1
+    },
+    {
+     "pos": 5,
+     "name": "Laura",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Yakau",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Jack",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Tyler",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 9,
+     "name": "Dan",
+     "tot": 4.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Matt",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Sarah Y",
+     "tot": 0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "date": "2022-11-01 00:00:00",
+   "N": 15,
+   "champ": "Jody",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Jody",
+     "tot": 15.0,
+     "offri": 0
+    },
+    {
+     "pos": 2,
+     "name": "Megan",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 3,
+     "name": "Tyler",
+     "tot": 12.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Sophie T",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 5,
+     "name": "Peter",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Erin",
+     "tot": 9.0,
+     "offri": 1
+    },
+    {
+     "pos": 7,
+     "name": "Ben S",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Strands",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 9,
+     "name": "Sam",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Erik",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Kevin",
+     "tot": 4.0,
+     "offri": 0
+    },
+    {
+     "pos": 12,
+     "name": "Jack",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 13,
+     "name": "Laura",
+     "tot": 2.0,
+     "offri": 0
+    },
+    {
+     "pos": 14,
+     "name": "Tom",
+     "tot": 1.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Dan",
+     "tot": 0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "date": "2023-06-01 00:00:00",
+   "N": 15,
+   "champ": "Tom",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Tom",
+     "tot": 15.0,
+     "offri": 0
+    },
+    {
+     "pos": 2,
+     "name": "Jody",
+     "tot": 14.0,
+     "offri": 0
+    },
+    {
+     "pos": 3,
+     "name": "Erin",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Evie",
+     "tot": 12.0,
+     "offri": 0
+    },
+    {
+     "pos": 5,
+     "name": "Alex S",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Erik",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 7,
+     "name": "Peter",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Yakau",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 9,
+     "name": "Jack",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Karo",
+     "tot": 6.0,
+     "offri": 1
+    },
+    {
+     "pos": 11,
+     "name": "Dan",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 12,
+     "name": "Sam",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 13,
+     "name": "Alia",
+     "tot": 2.0,
+     "offri": 0
+    },
+    {
+     "pos": 14,
+     "name": "Emma N",
+     "tot": 1.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Megan",
+     "tot": 0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "date": "2023-11-01 00:00:00",
+   "N": 19,
+   "champ": "Jack",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Jack",
+     "tot": 19.0,
+     "offri": 0
+    },
+    {
+     "pos": 2,
+     "name": "Megan",
+     "tot": 18.0,
+     "offri": 0
+    },
+    {
+     "pos": 3,
+     "name": "Erin",
+     "tot": 17.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Doug",
+     "tot": 16.0,
+     "offri": 0
+    },
+    {
+     "pos": 5,
+     "name": "Nick C",
+     "tot": 15.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Tyler",
+     "tot": 15.0,
+     "offri": 1
+    },
+    {
+     "pos": 7,
+     "name": "Peter",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Erik",
+     "tot": 12.0,
+     "offri": 0
+    },
+    {
+     "pos": 9,
+     "name": "Jody",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Dan",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Sean",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 12,
+     "name": "Sam",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 13,
+     "name": "Sophie CB",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 14,
+     "name": "Kevin",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Mira",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 16,
+     "name": "Laura",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 17,
+     "name": "Nathalie",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 18,
+     "name": "Tom",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 19,
+     "name": "Sarah Y",
+     "tot": 0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "date": "2024-06-01 00:00:00",
+   "N": 18,
+   "champ": "Megan",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Megan",
+     "tot": 17.0,
+     "offri": 1
+    },
+    {
+     "pos": 2,
+     "name": "Matt",
+     "tot": 15.0,
+     "offri": 0
+    },
+    {
+     "pos": 3,
+     "name": "Doug",
+     "tot": 14.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Jack",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 5,
+     "name": "Dan",
+     "tot": 12.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Laura",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 7,
+     "name": "Ezra",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Tom",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Jody",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Sean",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Tyler",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 12,
+     "name": "Erik",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 13,
+     "name": "Sam",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 14,
+     "name": "Erin",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Kevin",
+     "tot": 4.0,
+     "offri": 0
+    },
+    {
+     "pos": 16,
+     "name": "Sophie CB",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 17,
+     "name": "Hitesh",
+     "tot": 1.0,
+     "offri": 0
+    },
+    {
+     "pos": 18,
+     "name": "Peter",
+     "tot": 2.0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "date": "2024-12-01 00:00:00",
+   "N": 24,
+   "champ": "Laura",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Laura",
+     "tot": 19.0,
+     "offri": 0
+    },
+    {
+     "pos": 2,
+     "name": "Tom",
+     "tot": 18.0,
+     "offri": 1
+    },
+    {
+     "pos": 3,
+     "name": "Nick N",
+     "tot": 16.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Sam",
+     "tot": 15.0,
+     "offri": 0
+    },
+    {
+     "pos": 5,
+     "name": "Matt",
+     "tot": 14.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Joey",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 7,
+     "name": "Jody",
+     "tot": 13.0,
+     "offri": 1
+    },
+    {
+     "pos": 8,
+     "name": "Tyler",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 9,
+     "name": "Nick C",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Jack",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Alan",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 12,
+     "name": "Peter",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 13,
+     "name": "Sophie T",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 14,
+     "name": "Erin",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Sophie CB",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 16,
+     "name": "Kevin",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 17,
+     "name": "Ezra",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 18,
+     "name": "Kiera",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 19,
+     "name": "Megan",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 20,
+     "name": "Doug",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 21,
+     "name": "Erik",
+     "tot": 4.0,
+     "offri": 0
+    },
+    {
+     "pos": 22,
+     "name": "Evie",
+     "tot": 2.0,
+     "offri": 0
+    },
+    {
+     "pos": 23,
+     "name": "Sarah M",
+     "tot": 1.0,
+     "offri": 0
+    },
+    {
+     "pos": 24,
+     "name": "Yakau",
+     "tot": 2.0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "date": "2025-06-01 00:00:00",
+   "N": 20,
+   "champ": "Jack",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Jack",
+     "tot": 17.0,
+     "offri": 1
+    },
+    {
+     "pos": 2,
+     "name": "Cam",
+     "tot": 16.0,
+     "offri": 0
+    },
+    {
+     "pos": 3,
+     "name": "Megan",
+     "tot": 15.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Ben",
+     "tot": 14.0,
+     "offri": 1
+    },
+    {
+     "pos": 5,
+     "name": "Sam",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Nick N",
+     "tot": 12.0,
+     "offri": 0
+    },
+    {
+     "pos": 7,
+     "name": "Peter",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Erin",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 9,
+     "name": "Sarah M",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Nick C",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Joey",
+     "tot": 4.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Laura",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Alex S",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Erik",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Matt",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 16,
+     "name": "Sophie CB",
+     "tot": 4.0,
+     "offri": 0
+    },
+    {
+     "pos": 17,
+     "name": "Tyler",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 18,
+     "name": "Dan",
+     "tot": 5.0,
+     "offri": 0
+    },
+    {
+     "pos": 19,
+     "name": "Chris",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 20,
+     "name": "Sean",
+     "tot": 3.0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "date": "2025-11-01 00:00:00",
+   "N": 18,
+   "champ": "Jack",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Jack",
+     "tot": 16.0,
+     "offri": 0
+    },
+    {
+     "pos": 2,
+     "name": "Matt",
+     "tot": 15.0,
+     "offri": 1
+    },
+    {
+     "pos": 3,
+     "name": "Laura",
+     "tot": 14.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Doug",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 5,
+     "name": "Megan",
+     "tot": 12.0,
+     "offri": 0
+    },
+    {
+     "pos": 6,
+     "name": "Tyler",
+     "tot": 11.0,
+     "offri": 0
+    },
+    {
+     "pos": 7,
+     "name": "Nick N",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Ezra",
+     "tot": 9.0,
+     "offri": 1
+    },
+    {
+     "pos": 9,
+     "name": "Sean",
+     "tot": 8.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Erin",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Tom",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Joey",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Jody",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 11,
+     "name": "Peter",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Yakau",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 16,
+     "name": "Dan",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 17,
+     "name": "Sarah M",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 18,
+     "name": "Erik",
+     "tot": 2.0,
+     "offri": 0
+    }
+   ]
+  },
+  {
+   "n": 9,
+   "date": "2026/06",
+   "N": 15,
+   "champ": "Megan",
+   "results": [
+    {
+     "pos": 1,
+     "name": "Megan",
+     "tot": 15.0,
+     "offri": 0
+    },
+    {
+     "pos": 2,
+     "name": "Dan",
+     "tot": 14.0,
+     "offri": 0
+    },
+    {
+     "pos": 3,
+     "name": "Jack",
+     "tot": 13.0,
+     "offri": 0
+    },
+    {
+     "pos": 4,
+     "name": "Tyler",
+     "tot": 12.0,
+     "offri": 0
+    },
+    {
+     "pos": 5,
+     "name": "Peter",
+     "tot": 11.0,
+     "offri": 1
+    },
+    {
+     "pos": 6,
+     "name": "Tom",
+     "tot": 10.0,
+     "offri": 0
+    },
+    {
+     "pos": 7,
+     "name": "Laura",
+     "tot": 9.0,
+     "offri": 0
+    },
+    {
+     "pos": 8,
+     "name": "Chris",
+     "tot": 8.0,
+     "offri": 1
+    },
+    {
+     "pos": 9,
+     "name": "Sam",
+     "tot": 7.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Joey",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 10,
+     "name": "Olivia",
+     "tot": 6.0,
+     "offri": 0
+    },
+    {
+     "pos": 12,
+     "name": "Nick N",
+     "tot": 4.0,
+     "offri": 0
+    },
+    {
+     "pos": 13,
+     "name": "Sarah",
+     "tot": 2.0,
+     "offri": 0
+    },
+    {
+     "pos": 14,
+     "name": "Emma G",
+     "tot": 3.0,
+     "offri": 0
+    },
+    {
+     "pos": 15,
+     "name": "Ezra",
+     "tot": 2.0,
+     "offri": 0
+    }
+   ]
+  }
+ ],
+ "records": {
+  "most_titles": [
+   [
+    "Jack",
+    3
+   ],
+   [
+    "Megan",
+    2
+   ],
+   [
+    "Jody",
+    2
+   ],
+   [
+    "Laura",
+    1
+   ],
+   [
+    "Tom",
+    1
+   ]
+  ],
+  "iron": [
+   "Megan",
+   "Jack"
+  ],
+  "endurance": [
+   [
+    "Megan",
+    106.0
+   ],
+   [
+    "Jack",
+    103.0
+   ],
+   [
+    "Jody",
+    78.0
+   ],
+   [
+    "Tyler",
+    77.0
+   ],
+   [
+    "Laura",
+    75.0
+   ]
+  ],
+  "metronome": [
+   [
+    "Megan",
+    0.307,
+    9
+   ],
+   [
+    "Jody",
+    0.318,
+    7
+   ],
+   [
+    "Jack",
+    0.327,
+    9
+   ],
+   [
+    "Doug",
+    0.358,
+    4
+   ],
+   [
+    "Nick N",
+    0.403,
+    4
+   ]
+  ],
+  "bridesmaid": [
+   [
+    "Megan",
+    3,
+    2
+   ],
+   [
+    "Matt",
+    2,
+    0
+   ],
+   [
+    "Jody",
+    1,
+    2
+   ],
+   [
+    "Tom",
+    1,
+    1
+   ],
+   [
+    "Dan",
+    1,
+    0
+   ]
+  ],
+  "ri_comebacks": [
+   {
+    "name": "Megan",
+    "event": 5,
+    "pos": 1
+   },
+   {
+    "name": "Tom",
+    "event": 6,
+    "pos": 2
+   },
+   {
+    "name": "Jack",
+    "event": 7,
+    "pos": 1
+   },
+   {
+    "name": "Matt",
+    "event": 8,
+    "pos": 2
+   }
+  ],
+  "streak_t3": [
+   [
+    "Jack",
+    3
+   ]
+  ],
+  "streak_t5": [
+   [
+    "Megan",
+    3
+   ],
+   [
+    "Jack",
+    3
+   ]
+  ]
+ }
+}

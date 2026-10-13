@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// People who bet. Money lives in the ledger; a user's balance is the sum of
+// their LedgerEntry rows. Money is stored in integer cents ($1 = 100).
+// ---------------------------------------------------------------------------
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  pinHash   String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ledger    LedgerEntry[]
+  positions Position[]
+  trades    Trade[]
+}
+
+enum LedgerKind {
+  DEPOSIT // admin credited money after being paid
+  WITHDRAWAL // admin cashed someone out
+  BUY
+  SELL
+  PAYOUT // market settled
+  REFUND // market voided
+}
+
+model LedgerEntry {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  user        User       @relation(fields: [userId], references: [id])
+  kind        LedgerKind
+  amountCents Int // signed: + money in, - money out
+  note        String?
+  marketId    Int?
+  market      Market?    @relation(fields: [marketId], references: [id])
+  createdAt   DateTime   @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// The Iron Man event: competitors, editions, and the round-by-round results
+// the admin enters. Standings are derived from ResultEvent, never stored.
+// ---------------------------------------------------------------------------
+
+model Competitor {
+  id        Int            @id @default(autoincrement())
+  name      String         @unique
+  entries   EditionEntry[]
+  outcomes  Outcome[]
+  results   ResultEvent[]
+}
+
+enum EditionStatus {
+  SETUP
+  LIVE
+  FINISHED
+}
+
+model Edition {
+  id        Int           @id @default(autoincrement())
+  number    Int           @unique
+  date      DateTime?
+  status    EditionStatus @default(SETUP)
+  createdAt DateTime      @default(now())
+
+  entries   EditionEntry[]
+  results   ResultEvent[]
+  markets   Market[]
+}
+
+model EditionEntry {
+  editionId    Int
+  edition      Edition    @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  competitorId Int
+  competitor   Competitor @relation(fields: [competitorId], references: [id])
+
+  @@id([editionId, competitorId])
+}
+
+enum ResultKind {
+  TO_ISLAND // lost a round, sent to Redemption Island
+  OUT // eliminated for good (from the main game or from the island)
+  RETURN // survived Redemption Island, back in the game
+}
+
+model ResultEvent {
+  id           Int        @id @default(autoincrement())
+  editionId    Int
+  edition      Edition    @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  round        Int
+  competitorId Int
+  competitor   Competitor @relation(fields: [competitorId], references: [id])
+  kind         ResultKind
+  createdAt    DateTime   @default(now())
+
+  @@index([editionId])
+}
+
+// ---------------------------------------------------------------------------
+// Markets. Prices come from an LMSR market maker over each market's live
+// outcomes (lib/lmsr.ts). WINNER / TOP_N / H2H markets resolve themselves
+// from the edition's results (lib/resolve.ts); CUSTOM markets are resolved
+// by the admin.
+// ---------------------------------------------------------------------------
+
+enum MarketKind {
+  WINNER
+  TOP_N
+  H2H
+  CUSTOM
+}
+
+enum MarketStatus {
+  OPEN
+  CLOSED // admin paused trading
+  SETTLED
+  VOID
+}
+
+model Market {
+  id           Int          @id @default(autoincrement())
+  editionId    Int
+  edition      Edition      @relation(fields: [editionId], references: [id])
+  kind         MarketKind
+  question     String
+  topN         Int?
+  b            Float // LMSR liquidity: higher = prices move less per dollar
+  status       MarketStatus @default(OPEN)
+  // CUSTOM markets: admin-chosen payout per outcome id, e.g. {"12": 1}
+  manualResult Json?
+  createdAt    DateTime     @default(now())
+  settledAt    DateTime?
+
+  outcomes     Outcome[]
+  trades       Trade[]
+  ledger       LedgerEntry[]
+
+  @@index([editionId])
+}
+
+model Outcome {
+  id           Int         @id @default(autoincrement())
+  marketId     Int
+  market       Market      @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  label        String
+  sort         Int         @default(0)
+  // WINNER: the competitor. TOP_N: the competitor on the YES side. H2H: each side.
+  competitorId Int?
+  competitor   Competitor? @relation(fields: [competitorId], references: [id])
+  // TOP_N only: true for the YES outcome
+  isYes        Boolean?
+  // LMSR quantity (shares sold, plus the seed that sets the opening price)
+  q            Float       @default(0)
+
+  positions    Position[]
+  trades       Trade[]
+}
+
+model Position {
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  outcomeId Int
+  outcome   Outcome @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  shares    Float   @default(0)
+
+  @@id([userId, outcomeId])
+}
+
+model Trade {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  marketId    Int
+  market      Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  outcomeId   Int
+  outcome     Outcome  @relation(fields: [outcomeId], references: [id], onDelete: Cascade)
+  shares      Float // + bought, - sold
+  costCents   Int // + paid by the user, - received
+  // {outcomeId: price} right after the trade, for the price chart
+  pricesAfter Json
+  createdAt   DateTime @default(now())
+
+  @@index([marketId, createdAt])
+}
